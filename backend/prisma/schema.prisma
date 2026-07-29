@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WeightCategory {
+  LACE
+  FINGERING
+  SPORT
+  DK
+  WORSTED
+  ARAN
+  BULKY
+  SUPER_BULKY
+}
+
+enum AuthProvider {
+  KAKAO
+  GOOGLE
+  GUEST
+}
+
+enum PatternSource {
+  RAVELRY // 공식 API로 실시간 조회·캐싱, 완전히 통합된 소스
+  LINK // 출처 URL은 있으나 API 연동은 안 한 것 (블로그, Etsy, LoveCrafts 등)
+  USER // 링크 없이 순수 직접 입력
+}
+
+enum CatalogSource {
+  RAVELRY
+  USER
+}
+
+enum CraftType {
+  KNITTING // 대바늘
+  CROCHET // 코바늘
+  BOTH // 대바늘+코바늘
+}
+
+enum UnitSystem {
+  METRIC
+  IMPERIAL
+}
+
+model User {
+  id         String       @id @default(cuid())
+  provider   AuthProvider
+  providerId String? // 게스트는 null, 소셜 로그인은 카카오/구글 고유 ID
+  nickname   String?
+  createdAt  DateTime     @default(now())
+
+  yarns               Yarn[]
+  bookmarks           PatternBookmark[]
+  createdPatterns     Pattern[]
+  createdYarnCatalogs YarnCatalog[]
+  projects            Project[]
+
+  @@unique([provider, providerId])
+}
+
+model YarnCatalog {
+  id     String @id @default(cuid())
+
+  createdByUserId String
+  createdByUser   User   @relation(fields: [createdByUserId], references: [id])
+
+  brand          String
+  lineName       String
+  fiber          String?
+  weightCategory WeightCategory?
+  needleSize     String?
+  gaugeStitches  Float? // 표준 게이지, 콧수/10cm (제조사 권장 기준)
+  sourceType     CatalogSource
+  ravelryId      Int?            @unique
+  thumbnailUrl   String?
+  createdAt      DateTime        @default(now())
+
+  yarns              Yarn[]
+  originalOfPatterns Pattern[]
+
+  @@index([brand])
+  @@index([lineName])
+}
+
+model Yarn {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // 어떤 표준 실 정보에서 파생됐는지 (자동완성 선택 시 채워짐, 직접 입력 시 null)
+  catalogId String?
+  catalog   YarnCatalog? @relation(fields: [catalogId], references: [id])
+
+  brand          String
+  lineName       String?
+  colorName      String?
+  fiber          String?
+  weightCategory WeightCategory? // 선택 — 모르면 비워두고 등록 가능, 대신 도안 추천에서 제외됨
+  needleSize     String?
+  gaugeStitches  Float? // 게이지, 콧수/10cm (카탈로그 자동완성 시 채워짐, 직접 입력도 가능, 선택)
+  memo           String? // 개인 메모 (자유 텍스트)
+  consumed       Boolean  @default(false) // 소진 처리 여부 — true면 기본 목록에서 제외, 기록은 유지
+  createdAt      DateTime @default(now())
+
+  photos  YarnPhoto[]
+  batches YarnBatch[]
+  projects Project[]
+}
+
+model YarnPhoto {
+  id        String   @id @default(cuid())
+  yarnId    String
+  yarn      Yarn     @relation(fields: [yarnId], references: [id], onDelete: Cascade)
+  url       String
+  publicId  String? // Cloudinary public_id (삭제/변환용)
+  createdAt DateTime @default(now())
+}
+
+model YarnBatch {
+  id     String @id @default(cuid())
+  yarnId String
+  yarn   Yarn   @relation(fields: [yarnId], references: [id], onDelete: Cascade)
+
+  dyeLot          String? // 염색로트, 없으면 null (단순 합계로 취급)
+  skeinCount      Int
+  weightPerSkeinG Float // 정규화된 값 (내부 저장 기준)
+  lengthPerSkeinM Float // 정규화된 값 (내부 저장 기준)
+  inputUnit       UnitSystem // 사용자가 입력했던 단위 (표시용)
+  purchasedAt     DateTime?
+  createdAt       DateTime   @default(now())
+}
+
+model Pattern {
+  id String @id @default(cuid())
+
+  createdByUserId String
+  createdByUser   User   @relation(fields: [createdByUserId], references: [id])
+
+  name           String
+  designer       String?
+  craftType      CraftType // 필수 — 대바늘/코바늘/대바늘+코바늘
+  weightCategory WeightCategory // 필수 — 매칭 쿼리의 핵심 조건이라 nullable 불허
+  requiredMinM   Float // 필수 — 정규화된 필요량 최소값(m), 가장 작은 사이즈 기준
+  requiredMaxM   Float? // 정규화된 필요량 최대값 (선택, 범위형 도안일 때만 채워짐)
+  requiredUnit   UnitSystem? // 사용자가 입력했던 단위 (표시용)
+  gaugeStitches  Float? // 도안이 요구하는 게이지, 콧수/10cm (선택)
+  sourceUrl      String? // 참고 링크 (LINK 소스일 때 사실상 필수, USER는 선택)
+  sourceType     PatternSource
+  ravelryId      Int?            @unique
+  thumbnailUrl   String?
+  createdAt      DateTime        @default(now())
+
+  // 원본 실 (디자이너가 사용한 실) — YarnCatalog 재사용
+  originalYarnCatalogId String?
+  originalYarnCatalog   YarnCatalog? @relation(fields: [originalYarnCatalogId], references: [id])
+  originalYarnBrand     String? // 자동완성 선택 또는 직접 입력값 보관
+  originalYarnLine      String?
+
+  bookmarks PatternBookmark[]
+  projects  Project[]
+
+  @@index([weightCategory])
+  @@index([craftType])
+  @@index([name])
+  @@index([designer])
+}
+
+model PatternBookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  patternId String
+  pattern   Pattern  @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  memo      String? // 개인 메모 (자유 텍스트, 다른 유저에게 노출 안 됨)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, patternId])
+}
+
+enum ProjectStatus {
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+}
+
+model Project {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  patternId String
+  pattern   Pattern @relation(fields: [patternId], references: [id])
+  yarnId    String? // 선택 — 나중에 연결하거나 끝까지 안 정해도 됨
+  yarn      Yarn?   @relation(fields: [yarnId], references: [id], onDelete: SetNull)
+
+  status     ProjectStatus @default(IN_PROGRESS)
+  currentRow Int           @default(0) // 반복 무늬별 분기 없이 프로젝트 전체 단일 카운터
+  memo       String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  photos ProjectPhoto[]
+
+  // 주의: userId+patternId 유니크 제약 없음 — 완료된 프로젝트를 같은 도안으로 다시 시작할 수 있어야 함
+  // "이미 진행 중인 프로젝트가 있으면 새로 안 만듦"은 status=IN_PROGRESS까지 포함해 서비스 로직에서 체크
+}
+
+model ProjectPhoto {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  url       String
+  publicId  String?
+  createdAt DateTime @default(now())
+}
