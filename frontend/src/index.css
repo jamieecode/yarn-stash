@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* 화면설계서 0번 디자인 시스템 - 뜨개 트래커 프로젝트에서 확정한 톤 그대로 계승 */
+@theme {
+  --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --color-bg: #faf6ee;
+  --color-card: #ffffff;
+  --color-border: #e5dfd1;
+  --color-accent: #c9663c;
+  --color-accent-soft: #f3e1d5;
+  --color-sub: #7c8b6f;
+  --color-sub-soft: #e7ede1;
+  --color-warn: #b8792f;
+  --color-warn-soft: #f5e7ce;
+  --color-danger: #a8443a;
+  --color-danger-soft: #f2dad3;
+  --color-text: #3d3830;
+  --color-muted: #8a8272;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+#root {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
