@@ -34,3 +34,15 @@ body {
   flex-direction: column;
   background: var(--color-bg);
 }
+
+/* 태블릿/데스크톱에서는 모바일 폭에 갇히지 않고 카드 그리드가 더 넓게 펼쳐지도록 컨테이너를 단계적으로 확장 */
+@media (min-width: 768px) {
+  #root {
+    max-width: 720px;
+  }
+}
+@media (min-width: 1024px) {
+  #root {
+    max-width: 960px;
+  }
+}

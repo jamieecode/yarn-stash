@@ -66,37 +66,37 @@ export function PatternListPage() {
         />
       </div>
 
-      <div className="flex flex-col gap-2 p-4">
-        {isSearching ? (
-          <>
-            {searchQuery.isLoading && <p className="py-10 text-center text-sm text-muted">검색 중...</p>}
-            {searchQuery.data?.map((r) =>
-              r.source === "LOCAL" ? (
-                <PatternCard key={r.id} pattern={r} isBookmarked={bookmarkedIds.has(r.id)} onOpen={() => navigate(`/patterns/${r.id}`)} />
-              ) : (
-                <button
-                  key={`ravelry-${r.ravelryId}`}
-                  onClick={() => navigate(`/patterns/new?ravelryId=${r.ravelryId}`)}
-                  className="cursor-pointer rounded-xl border border-border bg-card p-3 text-left"
-                >
-                  <div className="text-sm font-semibold text-text">{r.name}</div>
-                  <div className="mt-0.5 text-xs text-muted">{r.designer ?? "작가 미상"} · Ravelry</div>
-                </button>
-              ),
-            )}
-          </>
-        ) : (
-          <>
-            {listQuery.isLoading && <p className="py-10 text-center text-sm text-muted">불러오는 중...</p>}
-            {listQuery.data?.map((pattern) => (
-              <PatternCard
-                key={pattern.id}
-                pattern={pattern}
-                isBookmarked={bookmarkedIds.has(pattern.id)}
-                onOpen={() => navigate(`/patterns/${pattern.id}`)}
-              />
-            ))}
-          </>
+      <div className="p-4">
+        {isSearching
+          ? searchQuery.isLoading && <p className="py-10 text-center text-sm text-muted">검색 중...</p>
+          : listQuery.isLoading && <p className="py-10 text-center text-sm text-muted">불러오는 중...</p>}
+
+        {!isEmpty && (
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+            {isSearching
+              ? searchQuery.data?.map((r) =>
+                  r.source === "LOCAL" ? (
+                    <PatternCard key={r.id} pattern={r} isBookmarked={bookmarkedIds.has(r.id)} onOpen={() => navigate(`/patterns/${r.id}`)} />
+                  ) : (
+                    <button
+                      key={`ravelry-${r.ravelryId}`}
+                      onClick={() => navigate(`/patterns/new?ravelryId=${r.ravelryId}`)}
+                      className="cursor-pointer rounded-xl border border-border bg-card p-3 text-left"
+                    >
+                      <div className="text-sm font-semibold text-text">{r.name}</div>
+                      <div className="mt-0.5 text-xs text-muted">{r.designer ?? "작가 미상"} · Ravelry</div>
+                    </button>
+                  ),
+                )
+              : listQuery.data?.map((pattern) => (
+                  <PatternCard
+                    key={pattern.id}
+                    pattern={pattern}
+                    isBookmarked={bookmarkedIds.has(pattern.id)}
+                    onOpen={() => navigate(`/patterns/${pattern.id}`)}
+                  />
+                ))}
+          </div>
         )}
 
         {isEmpty && (

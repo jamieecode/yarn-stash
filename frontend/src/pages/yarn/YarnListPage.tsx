@@ -97,7 +97,7 @@ export function YarnListPage() {
           />
         )}
         {yarns && yarns.length > 0 && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
             {yarns.map((yarn) => (
               <YarnCard key={yarn.id} yarn={yarn} onOpen={() => navigate(`/yarns/${yarn.id}`)} />
             ))}

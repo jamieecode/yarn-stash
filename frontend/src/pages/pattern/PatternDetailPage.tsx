@@ -170,7 +170,7 @@ export function PatternDetailPage() {
         {matchesLoading && <p className="py-6 text-center text-sm text-muted">불러오는 중...</p>}
         {matches && matches.length === 0 && <EmptyState message="같은 굵기의 실이 없어요" />}
         {matches && matches.length > 0 && (
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
             {matches.map((m) => (
               <button
                 key={m.yarn.id}

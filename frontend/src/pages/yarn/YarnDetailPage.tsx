@@ -132,7 +132,7 @@ export function YarnDetailPage() {
             <EmptyState message="같은 굵기의 도안을 찾지 못했어요, 로컬 DB에 등록된 도안이 아직 적어서일 수 있어요" />
           )}
           {matchesEnabled && matches && matches.length > 0 && (
-            <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
               {matches.map((m) => (
                 <button
                   key={m.pattern.id}

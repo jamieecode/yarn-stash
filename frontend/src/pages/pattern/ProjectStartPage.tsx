@@ -42,7 +42,7 @@ export function ProjectStartPage() {
         </div>
 
         <h2 className="mb-2 mt-5 text-sm font-semibold text-text">실 선택</h2>
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
           <button
             onClick={() => setSelectedYarnId(undefined)}
             className={`cursor-pointer rounded-xl border p-3 text-left text-sm ${

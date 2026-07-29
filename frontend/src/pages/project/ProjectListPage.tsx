@@ -29,29 +29,33 @@ export function ProjectListPage() {
         ))}
       </div>
 
-      <div className="flex flex-col gap-2 p-4">
+      <div className="p-4">
         {isLoading && <p className="py-10 text-center text-sm text-muted">불러오는 중...</p>}
         {projects && projects.length === 0 && (
           <EmptyState message="아직 시작한 프로젝트가 없어요, 도안 탭에서 마음에 드는 도안을 찾아 시작해보세요" />
         )}
-        {projects?.map((project) => (
-          <button
-            key={project.id}
-            onClick={() => navigate(`/projects/${project.id}`)}
-            className="cursor-pointer rounded-xl border border-border bg-card p-3 text-left"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-text">{project.pattern.name}</span>
-              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_BADGE_CLASS[project.status]}`}>
-                {PROJECT_STATUS_LABEL[project.status]}
-              </span>
-            </div>
-            <div className="mt-1 text-xs text-muted">
-              {project.yarn ? `${project.yarn.brand} ${project.yarn.lineName ?? ""}` : "실 미연결"} · {project.currentRow}단
-            </div>
-            <div className="mt-1 text-[11px] text-muted">{new Date(project.updatedAt).toLocaleDateString()}</div>
-          </button>
-        ))}
+        {projects && projects.length > 0 && (
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <button
+                key={project.id}
+                onClick={() => navigate(`/projects/${project.id}`)}
+                className="cursor-pointer rounded-xl border border-border bg-card p-3 text-left"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-text">{project.pattern.name}</span>
+                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_BADGE_CLASS[project.status]}`}>
+                    {PROJECT_STATUS_LABEL[project.status]}
+                  </span>
+                </div>
+                <div className="mt-1 text-xs text-muted">
+                  {project.yarn ? `${project.yarn.brand} ${project.yarn.lineName ?? ""}` : "실 미연결"} · {project.currentRow}단
+                </div>
+                <div className="mt-1 text-[11px] text-muted">{new Date(project.updatedAt).toLocaleDateString()}</div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
