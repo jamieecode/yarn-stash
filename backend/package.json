@@ -2,6 +2,7 @@
   "name": "yarn-stash-backend",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "build": "nest build",
     "start": "nest start",

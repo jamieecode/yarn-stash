@@ -50,3 +50,7 @@ npm run dev
 ```
 
 각 폴더의 README에 더 자세한 실행 옵션과 현재 구현 상태가 정리되어 있습니다.
+
+## License
+
+[MIT](LICENSE)
