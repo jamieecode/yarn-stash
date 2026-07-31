@@ -1,19 +1,20 @@
-import { IsIn, IsInt, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString } from "class-validator";
+import { IsGteProperty } from "../../common/validators/is-gte-property.validator";
 
 export class CreatePatternDto {
-  @IsString() name: string;
+  @IsString() @IsNotEmpty() name: string;
   @IsOptional() @IsString() designer?: string;
 
   @IsIn(["KNITTING", "CROCHET", "BOTH"])
   craftType: "KNITTING" | "CROCHET" | "BOTH";
 
-  @IsString() weightCategory: string;
+  @IsString() @IsNotEmpty() weightCategory: string;
 
-  @IsNumber() requiredMinM: number;
-  @IsOptional() @IsNumber() requiredMaxM?: number;
+  @IsNumber() @IsPositive() requiredMinM: number;
+  @IsOptional() @IsNumber() @IsPositive() @IsGteProperty("requiredMinM") requiredMaxM?: number;
   @IsIn(["METRIC", "IMPERIAL"]) requiredUnit: "METRIC" | "IMPERIAL";
 
-  @IsOptional() @IsNumber() gaugeStitches?: number;
+  @IsOptional() @IsNumber() @IsPositive() gaugeStitches?: number;
   @IsOptional() @IsString() sourceUrl?: string;
 
   @IsIn(["RAVELRY", "LINK", "USER"])

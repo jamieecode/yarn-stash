@@ -66,7 +66,8 @@ export function YarnRegisterPage() {
     setBatches((prev) => prev.filter((_, i) => i !== index));
   }
 
-  const canSubmit = brand.trim().length > 0 && batches.every((b) => b.skeinCount && b.weightPerSkein && b.lengthPerSkein);
+  const batchesValid = batches.every((b) => Number(b.skeinCount) >= 1 && Number(b.weightPerSkein) > 0 && Number(b.lengthPerSkein) > 0);
+  const canSubmit = brand.trim().length > 0 && batchesValid;
 
   async function handleSubmit() {
     if (!canSubmit) return;
@@ -128,7 +129,7 @@ export function YarnRegisterPage() {
             </select>
           </div>
           <TextField label="추천 바늘 사이즈" value={needleSize} onChange={setNeedleSize} />
-          <TextField label="게이지 (콧수/10cm)" value={gaugeStitches} onChange={setGaugeStitches} type="number" />
+          <TextField label="게이지 (콧수/10cm)" value={gaugeStitches} onChange={setGaugeStitches} type="number" min={0} />
         </section>
         {!weightCategory && (
           <p className="mt-1.5 text-xs text-muted">무게 카테고리를 입력하면 도안 추천을 받을 수 있어요</p>
@@ -178,6 +179,7 @@ export function YarnRegisterPage() {
                     value={batch.skeinCount}
                     onChange={(e) => updateBatch(index, { skeinCount: e.target.value })}
                     type="number"
+                    min={1}
                     placeholder="보유 타래 수"
                     className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
@@ -191,6 +193,7 @@ export function YarnRegisterPage() {
                     value={batch.weightPerSkein}
                     onChange={(e) => updateBatch(index, { weightPerSkein: e.target.value })}
                     type="number"
+                    min={0}
                     placeholder={`타래당 무게 (${unit === "METRIC" ? "g" : "oz"})`}
                     className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
@@ -198,6 +201,7 @@ export function YarnRegisterPage() {
                     value={batch.lengthPerSkein}
                     onChange={(e) => updateBatch(index, { lengthPerSkein: e.target.value })}
                     type="number"
+                    min={0}
                     placeholder={`타래당 길이 (${unit === "METRIC" ? "m" : "yd"})`}
                     className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
@@ -220,6 +224,9 @@ export function YarnRegisterPage() {
           >
             <Plus size={14} /> 다른 로트 추가
           </button>
+          {!batchesValid && batches.some((b) => b.skeinCount || b.weightPerSkein || b.lengthPerSkein) && (
+            <p className="mt-1.5 text-xs text-danger">보유 타래 수는 1개 이상, 무게·길이는 0보다 커야 해요</p>
+          )}
         </section>
       </div>
 
@@ -242,12 +249,14 @@ function TextField({
   value,
   onChange,
   type = "text",
+  min,
   className = "",
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
+  min?: number;
   className?: string;
 }) {
   return (
@@ -257,6 +266,7 @@ function TextField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         type={type}
+        min={min}
         className="w-full rounded-lg border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-accent"
       />
     </div>

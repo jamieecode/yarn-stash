@@ -85,7 +85,9 @@ export function PatternRegisterPage() {
   }
 
   const sourceType: PatternSource = ravelryId ? "RAVELRY" : sourceUrl ? "LINK" : "USER";
-  const canSubmit = name.trim().length > 0 && craftType !== "" && weightCategory !== "" && requiredMin.trim().length > 0;
+  const requiredMinValid = requiredMin.trim().length > 0 && Number(requiredMin) > 0;
+  const requiredMaxValid = requiredMax.trim().length === 0 || (Number(requiredMax) > 0 && Number(requiredMax) >= Number(requiredMin));
+  const canSubmit = name.trim().length > 0 && craftType !== "" && weightCategory !== "" && requiredMinValid && requiredMaxValid;
 
   async function handleSubmit() {
     if (!canSubmit) return;
@@ -189,6 +191,7 @@ export function PatternRegisterPage() {
                     value={requiredMin}
                     onChange={(e) => setRequiredMin(e.target.value)}
                     type="number"
+                    min={0}
                     placeholder="최소값"
                     className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
@@ -196,13 +199,20 @@ export function PatternRegisterPage() {
                     value={requiredMax}
                     onChange={(e) => setRequiredMax(e.target.value)}
                     type="number"
+                    min={0}
                     placeholder="최대값 (선택)"
                     className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
                 </div>
+                {requiredMin.trim().length > 0 && !requiredMinValid && (
+                  <p className="mt-1.5 text-xs text-danger">최소값은 0보다 커야 해요</p>
+                )}
+                {requiredMinValid && !requiredMaxValid && (
+                  <p className="mt-1.5 text-xs text-danger">최대값은 최소값보다 크거나 같아야 해요</p>
+                )}
               </div>
 
-              <TextField label="게이지 (콧수/10cm, 선택)" value={gaugeStitches} onChange={setGaugeStitches} type="number" />
+              <TextField label="게이지 (콧수/10cm, 선택)" value={gaugeStitches} onChange={setGaugeStitches} type="number" min={0} />
               <TextField label="참고 링크 (선택)" value={sourceUrl} onChange={setSourceUrl} />
 
               <div>
@@ -247,11 +257,13 @@ function TextField({
   value,
   onChange,
   type = "text",
+  min,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
+  min?: number;
 }) {
   return (
     <div>
@@ -260,6 +272,7 @@ function TextField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         type={type}
+        min={min}
         className="w-full rounded-lg border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-accent"
       />
     </div>

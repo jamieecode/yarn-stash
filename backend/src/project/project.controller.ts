@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ProjectService } from "./project.service";
 import { UpdateProjectDto } from "./dto/update-project.dto";
+import { CreateProjectDto } from "./dto/create-project.dto";
 import { AuthGuard } from "../common/guards/auth.guard";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 
@@ -25,7 +26,7 @@ export class ProjectController {
   }
 
   @Post()
-  start(@CurrentUser() user: { userId: string }, @Body() body: { patternId: string; yarnId?: string }) {
+  start(@CurrentUser() user: { userId: string }, @Body() body: CreateProjectDto) {
     return this.projectService.startOrResume(user.userId, body.patternId, body.yarnId);
   }
 

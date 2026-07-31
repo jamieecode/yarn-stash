@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsArray, IsIn, IsInt, IsNumber, IsOptional, IsString, Min, ValidateNested } from "class-validator";
+import { IsArray, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, Min, ValidateNested } from "class-validator";
 
 export class CreateBatchDto {
   @IsOptional()
@@ -11,9 +11,11 @@ export class CreateBatchDto {
   skeinCount: number;
 
   @IsNumber()
+  @IsPositive()
   weightPerSkeinG: number;
 
   @IsNumber()
+  @IsPositive()
   lengthPerSkeinM: number;
 
   @IsIn(["METRIC", "IMPERIAL"])
@@ -37,7 +39,7 @@ export class YarnPhotoInputDto {
 export class CreateYarnDto {
   @IsOptional() @IsString() catalogId?: string;
 
-  @IsString() brand: string;
+  @IsString() @IsNotEmpty() brand: string;
   @IsOptional() @IsString() lineName?: string;
   @IsOptional() @IsString() colorName?: string;
   @IsOptional() @IsString() fiber?: string;
@@ -45,7 +47,7 @@ export class CreateYarnDto {
   // 실은 무게 카테고리를 몰라도 등록 가능 (기획서 2.1) - 그래서 optional
   @IsOptional() @IsString() weightCategory?: string;
   @IsOptional() @IsString() needleSize?: string;
-  @IsOptional() @IsNumber() gaugeStitches?: number;
+  @IsOptional() @IsNumber() @IsPositive() gaugeStitches?: number;
   @IsOptional() @IsString() memo?: string;
 
   @IsOptional()
