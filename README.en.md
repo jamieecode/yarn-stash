@@ -6,7 +6,7 @@ A personal inventory app for knitters and crocheters. Register the yarn you own 
 
 ## Key Features
 
-- **Bidirectional yarn ↔ pattern matching**: Matches on weight-category compatibility and yardage sufficiency (owned vs. required), scored into four levels — plenty / sufficient / tight / insufficient. Also flags gauge approximation and dye-lot (dye-matching) considerations as supporting signals.
+- **Bidirectional yarn ↔ pattern matching**: Matches on weight-category compatibility and yardage sufficiency (owned vs. required), scored on a four-level scale — plenty / sufficient / tight / insufficient. Also flags gauge approximation and dye-lot matching as supporting signals.
 - **Local DB + Ravelry hybrid search**: When registering yarn or patterns, the local database is queried first; if nothing matches, it falls back to the Ravelry API and caches only the item the user actually selects.
 - **Guest-first authentication**: Usable immediately without signing in. Guest data is carried over seamlessly when the user later upgrades to Kakao/Google login.
 - **Project tracker**: Once a project is started from a pattern, track it with a row counter, progress photos, and status (in progress / completed / on hold).

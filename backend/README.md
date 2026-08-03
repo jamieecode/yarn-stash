@@ -1,5 +1,7 @@
 # 실 스태시 트래커 백엔드 (Nest.js)
 
+[English](README.en.md)
+
 ## 실행 방법
 
 ```bash
@@ -25,6 +27,7 @@ src/
   auth/          # 게스트 발급 / 카카오·구글 OAuth / 게스트→계정 데이터 병합
   yarn/          # 실 CRUD (배치 포함) + 도안 매칭
   yarn-catalog/  # 실 카탈로그 검색 (로컬 우선 + Ravelry 폴백)
+  ravelry/       # Ravelry API 클라이언트 (yarn-catalog, pattern에서 공용으로 사용)
   pattern/       # 도안 CRUD + 찜(북마크) + 실 매칭
   project/       # 프로젝트 트래커 - 시작/재사용 체크, 진행 상태 관리
 ```
