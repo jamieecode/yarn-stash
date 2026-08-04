@@ -35,11 +35,25 @@ src/
 ## Tests
 
 ```bash
-npm test        # run all tests
+npm test        # run all unit tests
 npm run test:cov # with coverage
 ```
 
-Unit tests focus on core business logic: matching ratio/gauge/dye-lot-mixing calculations, unit conversion, ownership validation, guest-to-account merge, pattern-deletion eligibility conditions, and so on. `PrismaService` is replaced with a mock, so tests run without a real database. There are no e2e tests (against a real database) yet.
+Unit tests focus on core business logic: matching ratio/gauge/dye-lot-mixing calculations, unit conversion, ownership validation, guest-to-account merge, pattern-deletion eligibility conditions, and so on. `PrismaService` is replaced with a mock, so tests run without a real database.
+
+### e2e tests
+
+Integration tests that go through the real controllers, guards, and Prisma, against a separate local Postgres instance (kept apart from the dev Neon database) started with Docker.
+
+```bash
+docker compose -f docker-compose.test.yml up -d   # dedicated test Postgres container (localhost:5433)
+cp .env.example .env.test                          # replace DATABASE_URL with the value below
+# DATABASE_URL="postgresql://postgres:test@localhost:5433/yarn_stash_test"
+npx dotenv -e .env.test -- npx prisma migrate deploy   # apply schema (once, and again whenever migrations are added)
+npm run test:e2e
+```
+
+Covers three core flows: guest creation → yarn registration → pattern-match lookup; guest-to-Kakao-account merge; and pattern deletion constraints (favorited by others / linked project) (`test/app.e2e-spec.ts`). External OAuth calls (Kakao, etc.) are stubbed via `global.fetch` so only our own logic is exercised, without hitting the real network.
 
 ## Current Status — What Works and What Doesn't
 
@@ -50,10 +64,9 @@ Unit tests focus on core business logic: matching ratio/gauge/dye-lot-mixing cal
 - Matching: bidirectional yarn ↔ pattern matching (includes surplus ratio, gauge-approximation chip, dye-lot-mixing guidance)
 - External integrations: Ravelry API fallback search (yarn/patterns), Cloudinary upload (direct unsigned upload from the frontend)
 - Project: start/reuse check (redirects to an existing in-progress project if one exists), status/row-count/notes/photo management
-- Unit tests for core service logic (auth/yarn/pattern/project services + matching and unit-conversion utils)
+- Unit tests for core service logic (auth/yarn/pattern/project services + matching and unit-conversion utils) + e2e tests for core flows (against a local Docker Postgres)
+- Ravelry API verified live against real credentials, field-mapping bugs fixed (`ravelry.service.ts`)
 
 **Known Limitations**
-- The Ravelry API was developed without credentials, so endpoint paths and field names are based on public docs/community libraries — needs re-verification against live responses once real API keys are issued (see the comment at the top of `ravelry.service.ts`)
-- No e2e tests against a real database yet — currently only unit tests with `PrismaService` mocked
 - No cleanup batch job for abandoned guest accounts (out of scope for phase 1, see planning doc section 2.9)
 - Recommend running a full type check with `npx tsc --noEmit` once more before deploying

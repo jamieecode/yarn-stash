@@ -1,0 +1,8 @@
+services:
+  test-db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: yarn_stash_test
+    ports:
+      - "5433:5432"
