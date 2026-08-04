@@ -3,10 +3,9 @@ import { ConfigService } from "@nestjs/config";
 import { WeightCategory } from "@prisma/client";
 import { YD_TO_M } from "../common/units.util";
 
-// Ravelry 공식 API 문서(https://www.ravelry.com/api, 개발자 로그인 필요)는 자격증명이 아직 없어
-// 이번 세션에서 라이브 호출로 재검증하지 못했다. 아래 엔드포인트/필드명은 Ravelry가 오랫동안 유지해온
-// 공개 REST 스펙으로, 여러 독립적인 커뮤니티 라이브러리(R ravelRy, Ruby gem 등)가 공통으로 참조하는 값이다.
-// RAVELRY_API_KEY/SECRET이 채워지는 대로 실제 응답으로 필드명을 한 번 더 대조할 것.
+// read-only Basic Auth 크리덴셜로 라이브 응답을 검증 완료 (2026-08-04).
+// 검색(search) 응답과 상세(detail) 응답은 썸네일 필드 모양이 다르다: 검색은 first_photo(단일 객체),
+// 상세는 photos(배열)를 준다. 브랜드명/fiber/디자이너명도 검색과 상세에서 위치가 다르므로 섞어 쓰지 말 것.
 const RAVELRY_BASE_URL = "https://api.ravelry.com";
 
 // Ravelry yarn_weight.name -> 우리 WeightCategory enum 매핑.
@@ -68,13 +67,18 @@ export class RavelryService {
     if (!res) return [];
 
     const data = res as {
-      yarns?: Array<{ id: number; name: string; yarn_company_name: string; photos?: Array<{ small_url?: string }> }>;
+      yarns?: Array<{
+        id: number;
+        name: string;
+        yarn_company_name: string;
+        first_photo?: { small_url?: string };
+      }>;
     };
     return (data.yarns ?? []).map((y) => ({
       ravelryId: y.id,
       brand: y.yarn_company_name,
       lineName: y.name,
-      thumbnailUrl: y.photos?.[0]?.small_url,
+      thumbnailUrl: y.first_photo?.small_url,
     }));
   }
 
@@ -89,8 +93,8 @@ export class RavelryService {
       yarn?: {
         id: number;
         name: string;
-        yarn_company_name: string;
-        fiber_content_description?: string;
+        yarn_company?: { name?: string };
+        yarn_fibers?: Array<{ percentage?: number; fiber_type?: { name?: string } }>;
         yarn_weight?: { name?: string };
         photos?: Array<{ small_url?: string }>;
       };
@@ -100,9 +104,9 @@ export class RavelryService {
 
     return {
       ravelryId: y.id,
-      brand: y.yarn_company_name,
+      brand: y.yarn_company?.name ?? "",
       lineName: y.name,
-      fiber: y.fiber_content_description,
+      fiber: formatFiberDescription(y.yarn_fibers),
       weightCategory: y.yarn_weight?.name ? RAVELRY_WEIGHT_MAP[y.yarn_weight.name] : undefined,
       thumbnailUrl: y.photos?.[0]?.small_url,
     };
@@ -116,13 +120,18 @@ export class RavelryService {
     if (!res) return [];
 
     const data = res as {
-      patterns?: Array<{ id: number; name: string; designer?: { name?: string }; photos?: Array<{ small_url?: string }> }>;
+      patterns?: Array<{
+        id: number;
+        name: string;
+        designer?: { name?: string };
+        first_photo?: { small_url?: string };
+      }>;
     };
     return (data.patterns ?? []).map((p) => ({
       ravelryId: p.id,
       name: p.name,
       designer: p.designer?.name,
-      thumbnailUrl: p.photos?.[0]?.small_url,
+      thumbnailUrl: p.first_photo?.small_url,
     }));
   }
 
@@ -137,7 +146,7 @@ export class RavelryService {
       pattern?: {
         id: number;
         name: string;
-        designer?: { name?: string };
+        pattern_author?: { name?: string };
         craft?: { name?: string };
         yardage?: number;
         yardage_max?: number;
@@ -153,7 +162,7 @@ export class RavelryService {
     return {
       ravelryId: p.id,
       name: p.name,
-      designer: p.designer?.name,
+      designer: p.pattern_author?.name,
       craftType: mapCraftType(p.craft?.name),
       weightCategory: p.yarn_weight?.name ? RAVELRY_WEIGHT_MAP[p.yarn_weight.name] : undefined,
       requiredMinM: p.yardage != null ? +(p.yardage * YD_TO_M).toFixed(1) : undefined,
@@ -186,4 +195,14 @@ function mapCraftType(name?: string): "KNITTING" | "CROCHET" | "BOTH" | undefine
   if (lower.includes("knit")) return "KNITTING";
   if (lower.includes("crochet")) return "CROCHET";
   return undefined;
+}
+
+// Ravelry는 fiber_content_description 같은 완성 문자열을 안 주고 yarn_fibers 배열(비율+섬유명)로만 준다.
+// "100% Merino" 형태로 직접 조합한다.
+function formatFiberDescription(fibers?: Array<{ percentage?: number; fiber_type?: { name?: string } }>): string | undefined {
+  if (!fibers?.length) return undefined;
+  const parts = fibers
+    .filter((f) => f.fiber_type?.name)
+    .map((f) => (f.percentage != null ? `${f.percentage}% ${f.fiber_type!.name}` : f.fiber_type!.name!));
+  return parts.length ? parts.join(", ") : undefined;
 }
