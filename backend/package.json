@@ -14,7 +14,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:e2e": "dotenv -e .env.test -- jest --config ./test/jest-e2e.json"
+    "test:e2e": "dotenv -e .env.test -- jest --config ./test/jest-e2e.json",
+    "test:e2e:ci": "jest --config ./test/jest-e2e.json"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
