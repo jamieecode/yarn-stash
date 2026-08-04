@@ -19,6 +19,7 @@ interface AuthContextValue {
   completeGoogleLogin: (code: string) => Promise<void>;
   redirectToKakao: () => void;
   redirectToGoogle: () => void;
+  updateNickname: (nickname: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -69,6 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     url.searchParams.set("client_id", KAKAO_CLIENT_ID ?? "");
     url.searchParams.set("redirect_uri", KAKAO_REDIRECT_URI ?? "");
     url.searchParams.set("response_type", "code");
+    // 선택 동의 항목이라도 scope로 명시하지 않으면 이미 인가한 사용자에게는 재요청하지 않고 건너뜀
+    url.searchParams.set("scope", "profile_nickname");
     window.location.href = url.toString();
   }
 
@@ -79,6 +82,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     url.searchParams.set("response_type", "code");
     url.searchParams.set("scope", "openid email profile");
     window.location.href = url.toString();
+  }
+
+  // 마이페이지에서 닉네임 직접 수정 (기본값은 소셜 로그인 시 받아온 값)
+  async function updateNickname(nickname: string) {
+    const updated = await api.patch<User>("/auth/me", { nickname });
+    queryClient.setQueryData(["auth", "me", token], updated);
   }
 
   function logout() {
@@ -99,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     completeGoogleLogin,
     redirectToKakao,
     redirectToGoogle,
+    updateNickname,
     logout,
   };
 

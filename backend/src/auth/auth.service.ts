@@ -46,9 +46,18 @@ export class AuthService {
       throw new UnauthorizedException("카카오 사용자 정보를 가져오지 못했어요");
     }
     // 카카오는 이메일 제공 동의를 안 받을 수 있어(기획서 2.9), 최상위 id(고유 회원번호)만 providerId로 사용
-    const profile = (await profileRes.json()) as { id: number };
+    // 닉네임은 "선택 동의" 항목이라 사용자가 거부하면 응답에서 빠질 수 있음 - 그 경우 undefined로 가입 처리
+    const profile = (await profileRes.json()) as {
+      id: number;
+      kakao_account?: { profile?: { nickname?: string } };
+    };
 
-    return this.findOrCreateSocialUser(AuthProvider.KAKAO, String(profile.id), guestUserId);
+    return this.findOrCreateSocialUser(
+      AuthProvider.KAKAO,
+      String(profile.id),
+      guestUserId,
+      profile.kakao_account?.profile?.nickname,
+    );
   }
 
   // 구글 OAuth: 인가 코드 → 토큰 교환 → userinfo 조회(sub = 고유 ID) → find-or-create → 게스트 병합 → JWT 발급
@@ -83,6 +92,11 @@ export class AuthService {
 
   async findById(userId: string) {
     return this.prisma.user.findUnique({ where: { id: userId } });
+  }
+
+  // 마이페이지에서 닉네임 직접 수정 (기본값은 카카오/구글 가입 시 받아온 값, 이후엔 사용자가 자유롭게 변경)
+  async updateNickname(userId: string, nickname: string) {
+    return this.prisma.user.update({ where: { id: userId }, data: { nickname } });
   }
 
   // provider+providerId 기준 find-or-create 후, 기존 게스트 세션이 있었다면 데이터 병합까지 처리
