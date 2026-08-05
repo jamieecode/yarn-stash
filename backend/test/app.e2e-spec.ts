@@ -36,6 +36,14 @@ describe("App e2e", () => {
     await prisma.user.deleteMany();
   });
 
+  // 0. 헬스체크: Render 배포 인스턴스가 슬립되지 않도록 GitHub Actions에서 주기적으로 호출하는 엔드포인트
+  describe("헬스체크", () => {
+    it("GET /api/health는 200과 status ok를 반환한다", async () => {
+      const res = await request(app.getHttpServer()).get("/api/health").expect(200);
+      expect(res.body).toEqual({ status: "ok" });
+    });
+  });
+
   // 1. 게스트 생성 → 로그인(게스트 토큰 자체가 세션) → 실 등록 → 도안 매칭 조회
   describe("게스트 → 실 등록 → 매칭 조회", () => {
     it("게스트로 시작해 실을 등록하고 매칭 목록을 조회할 수 있다", async () => {
