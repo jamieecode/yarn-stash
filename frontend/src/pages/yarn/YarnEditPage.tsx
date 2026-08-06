@@ -76,7 +76,7 @@ export function YarnEditPage() {
           <TextField label="색상명" value={colorName} onChange={setColorName} />
           <TextField label="소재" value={fiber} onChange={setFiber} />
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">무게 카테고리</label>
+            <label className="mb-1 block text-xs font-semibold text-muted">굵기</label>
             <select
               value={weightCategory}
               onChange={(e) => setWeightCategory(e.target.value as WeightCategory | "")}

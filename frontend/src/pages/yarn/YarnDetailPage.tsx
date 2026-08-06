@@ -86,7 +86,7 @@ export function YarnDetailPage() {
 
         <label className="mt-3 flex items-center gap-2 text-sm text-text">
           <input type="checkbox" checked={yarn.consumed} onChange={handleToggleConsumed} />
-          다 썼어요
+          다 썼어요 (소진 처리)
         </label>
       </div>
 
@@ -122,7 +122,7 @@ export function YarnDetailPage() {
       {tab === "matches" && (
         <div className="p-4">
           {!yarn.weightCategory && (
-            <EmptyState message="무게 카테고리를 입력하면 추천받을 수 있어요" />
+            <EmptyState message="굵기를 입력하면 추천받을 수 있어요" />
           )}
           {yarn.consumed && yarn.weightCategory && (
             <EmptyState message="소진 처리된 실이라 도안 추천이 표시되지 않아요" />

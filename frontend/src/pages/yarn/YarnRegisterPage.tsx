@@ -114,7 +114,7 @@ export function YarnRegisterPage() {
           <TextField label="색상명" value={colorName} onChange={setColorName} />
           <TextField label="소재" value={fiber} onChange={setFiber} className="col-span-2" />
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">무게 카테고리</label>
+            <label className="mb-1 block text-xs font-semibold text-muted">굵기</label>
             <select
               value={weightCategory}
               onChange={(e) => setWeightCategory(e.target.value as WeightCategory | "")}
@@ -132,7 +132,7 @@ export function YarnRegisterPage() {
           <TextField label="게이지 (콧수/10cm)" value={gaugeStitches} onChange={setGaugeStitches} type="number" min={0} />
         </section>
         {!weightCategory && (
-          <p className="mt-1.5 text-xs text-muted">무게 카테고리를 입력하면 도안 추천을 받을 수 있어요</p>
+          <p className="mt-1.5 text-xs text-muted">굵기를 입력하면 도안 추천을 받을 수 있어요</p>
         )}
 
         <section className="mt-4">
@@ -211,7 +211,7 @@ export function YarnRegisterPage() {
                     onClick={() => removeBatch(index)}
                     className="mt-2 flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs text-danger"
                   >
-                    <Trash2 size={12} /> 이 로트 제거
+                    <Trash2 size={12} /> 이 배치 제거
                   </button>
                 )}
               </div>
@@ -222,7 +222,7 @@ export function YarnRegisterPage() {
             onClick={() => setBatches((prev) => [...prev, { ...EMPTY_BATCH }])}
             className="mt-2 flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs font-semibold text-accent"
           >
-            <Plus size={14} /> 다른 로트 추가
+            <Plus size={14} /> 다른 배치 추가
           </button>
           {!batchesValid && batches.some((b) => b.skeinCount || b.weightPerSkein || b.lengthPerSkein) && (
             <p className="mt-1.5 text-xs text-danger">보유 타래 수는 1개 이상, 무게·길이는 0보다 커야 해요</p>

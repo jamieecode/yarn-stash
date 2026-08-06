@@ -16,7 +16,7 @@ export function KakaoCallbackPage() {
 
     const code = searchParams.get("code");
     if (!code) {
-      setError("카카오 인증 코드가 없어요");
+      setError("카카오 로그인에 실패했어요");
       return;
     }
     completeKakaoLogin(code)

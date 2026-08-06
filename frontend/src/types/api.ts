@@ -19,7 +19,7 @@ export type ProjectStatus = "IN_PROGRESS" | "COMPLETED" | "ON_HOLD";
 
 export const WEIGHT_CATEGORY_LABEL: Record<WeightCategory, string> = {
   LACE: "레이스",
-  FINGERING: "피어링",
+  FINGERING: "핑거링",
   SPORT: "스포츠",
   DK: "DK",
   WORSTED: "워스티드",
@@ -201,9 +201,9 @@ export type YardageLabel = "AMPLE" | "SUFFICIENT" | "TIGHT" | "INSUFFICIENT";
 export type GaugeChip = "MATCH" | "DIFFERENT" | null;
 
 export const YARDAGE_LABEL_TEXT: Record<YardageLabel, string> = {
-  AMPLE: "여유 있음",
+  AMPLE: "여유로움",
   SUFFICIENT: "충분함",
-  TIGHT: "타이트함",
+  TIGHT: "빠듯함",
   INSUFFICIENT: "부족함",
 };
 

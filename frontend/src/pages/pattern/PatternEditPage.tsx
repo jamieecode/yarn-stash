@@ -92,7 +92,7 @@ export function PatternEditPage() {
           <TextField label="작가 (선택)" value={designer} onChange={setDesigner} />
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">도구 종류</label>
+            <label className="mb-1 block text-xs font-semibold text-muted">뜨개 방법</label>
             <select
               value={craftType}
               onChange={(e) => setCraftType(e.target.value as CraftType | "")}
@@ -108,7 +108,7 @@ export function PatternEditPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">무게 카테고리</label>
+            <label className="mb-1 block text-xs font-semibold text-muted">굵기</label>
             <select
               value={weightCategory}
               onChange={(e) => setWeightCategory(e.target.value as WeightCategory | "")}

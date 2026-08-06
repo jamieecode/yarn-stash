@@ -9,7 +9,7 @@ export function GaugeChipDisplay({ chip }: { chip: GaugeChip }) {
         chip === "MATCH" ? "bg-sub-soft text-sub" : "bg-warn-soft text-warn"
       }`}
     >
-      {chip === "MATCH" ? "게이지 일치" : "게이지 차이 있음"}
+      {chip === "MATCH" ? "게이지 일치" : "게이지 불일치"}
     </span>
   );
 }

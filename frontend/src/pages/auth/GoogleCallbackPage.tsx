@@ -16,7 +16,7 @@ export function GoogleCallbackPage() {
 
     const code = searchParams.get("code");
     if (!code) {
-      setError("구글 인증 코드가 없어요");
+      setError("구글 로그인에 실패했어요");
       return;
     }
     completeGoogleLogin(code)

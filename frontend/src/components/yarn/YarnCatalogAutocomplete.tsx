@@ -53,7 +53,7 @@ export function YarnCatalogAutocomplete({ query, onQueryChange, onSelect }: Yarn
                 {r.brand} {r.lineName}
               </span>
               <span className="text-xs text-muted">
-                {r.source === "LOCAL" ? [r.fiber, r.weightCategory].filter(Boolean).join(" · ") : "정보 불러오는 중"}
+                {r.source === "LOCAL" ? [r.fiber, r.weightCategory].filter(Boolean).join(" · ") : "정보 불러오는 중..."}
                 {" · "}
                 {r.source === "LOCAL" ? "내 DB" : "Ravelry"}
               </span>

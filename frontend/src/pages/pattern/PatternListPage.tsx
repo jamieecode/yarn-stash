@@ -103,7 +103,7 @@ export function PatternListPage() {
           <EmptyState
             message={
               isSearching
-                ? "찾는 도안이 없나요?"
+                ? "일치하는 도안이 없어요"
                 : filter === "BOOKMARKED"
                   ? "아직 찜한 도안이 없어요"
                   : "아직 등록된 도안이 없어요"

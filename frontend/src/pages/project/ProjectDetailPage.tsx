@@ -137,7 +137,7 @@ export function ProjectDetailPage() {
             </button>
           </div>
           <button onClick={() => setConfirmingReset(true)} className="cursor-pointer border-none bg-transparent text-xs text-muted underline">
-            리셋
+            초기화
           </button>
         </div>
 
@@ -170,8 +170,8 @@ export function ProjectDetailPage() {
       )}
       {confirmingReset && (
         <ConfirmModal
-          title="단수를 0으로 리셋할까요?"
-          confirmLabel="리셋"
+          title="단수를 0으로 초기화할까요?"
+          confirmLabel="초기화"
           danger
           onConfirm={handleReset}
           onCancel={() => setConfirmingReset(false)}

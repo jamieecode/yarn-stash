@@ -8,7 +8,7 @@ interface ConfirmModalProps {
   onCancel: () => void;
 }
 
-// 실/도안/프로젝트 삭제, 배치 삭제, 단수 리셋 등에서 공용으로 쓰는 확인 모달
+// 실/도안/프로젝트 삭제, 배치 삭제, 단수 초기화 등에서 공용으로 쓰는 확인 모달
 export function ConfirmModal({
   title,
   description,
