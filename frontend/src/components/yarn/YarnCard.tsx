@@ -3,8 +3,9 @@ import { WeightBadge } from "../ui/WeightBadge";
 import type { Yarn } from "../../types/api";
 
 export function YarnCard({ yarn, onOpen }: { yarn: Yarn; onOpen: () => void }) {
-  const totalM = yarn.batches.reduce((sum, b) => sum + b.skeinCount * b.lengthPerSkeinM, 0);
   const totalSkeins = yarn.batches.reduce((sum, b) => sum + b.skeinCount, 0);
+  // 프로젝트가 잡고 있는 양이 있으면 "쓸 수 있는 양"을 앞세운다 - 총 보유량만 보여주면 이미 예약된 실을 또 쓸 수 있다고 착각하게 됨
+  const isCommitted = yarn.committedM > 0;
   const lotCount = new Set(yarn.batches.map((b) => b.dyeLot ?? "__none__")).size;
   const photoCount = yarn.photos.length;
   const cover = yarn.photos[0]?.url;
@@ -41,9 +42,12 @@ export function YarnCard({ yarn, onOpen }: { yarn: Yarn; onOpen: () => void }) {
         <div className="flex items-center justify-between">
           <WeightBadge weight={yarn.weightCategory} />
           <span className="text-[11px] text-muted">
-            {totalM}m · {totalSkeins}타래
+            {isCommitted ? `${Math.round(yarn.availableM)}m 남음` : `${Math.round(yarn.totalM)}m`} · {totalSkeins}타래
           </span>
         </div>
+        {isCommitted && (
+          <div className="mt-1 text-[10px] text-sub">프로젝트에 {Math.round(yarn.committedM)}m 사용 중</div>
+        )}
       </div>
     </button>
   );

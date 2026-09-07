@@ -1,7 +1,8 @@
-import { BookOpen, ListChecks, Package, User } from "lucide-react";
+import { BookOpen, Home, ListChecks, Package, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const TABS = [
+  { to: "/home", label: "홈", Icon: Home },
   { to: "/yarns", label: "실", Icon: Package },
   { to: "/patterns", label: "도안", Icon: BookOpen },
   { to: "/projects", label: "프로젝트", Icon: ListChecks },

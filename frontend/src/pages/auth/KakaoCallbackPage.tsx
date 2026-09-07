@@ -20,7 +20,7 @@ export function KakaoCallbackPage() {
       return;
     }
     completeKakaoLogin(code)
-      .then(() => navigate("/yarns", { replace: true }))
+      .then(() => navigate("/home", { replace: true }))
       .catch(() => setError("카카오 로그인에 실패했어요"));
   }, [searchParams, completeKakaoLogin, navigate]);
 

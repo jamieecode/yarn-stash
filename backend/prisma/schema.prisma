@@ -109,7 +109,7 @@ model Yarn {
 
   photos  YarnPhoto[]
   batches YarnBatch[]
-  projects Project[]
+  usages  ProjectYarnUsage[]
 }
 
 model YarnPhoto {
@@ -195,8 +195,6 @@ model Project {
 
   patternId String
   pattern   Pattern @relation(fields: [patternId], references: [id])
-  yarnId    String? // 선택 — 나중에 연결하거나 끝까지 안 정해도 됨
-  yarn      Yarn?   @relation(fields: [yarnId], references: [id], onDelete: SetNull)
 
   status     ProjectStatus @default(IN_PROGRESS)
   currentRow Int           @default(0) // 반복 무늬별 분기 없이 프로젝트 전체 단일 카운터
@@ -204,10 +202,32 @@ model Project {
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 
-  photos ProjectPhoto[]
+  photos     ProjectPhoto[]
+  yarnUsages ProjectYarnUsage[] // 선택 — 실을 안 정하고 시작하거나, 배색처럼 여러 개를 연결할 수도 있음
 
   // 주의: userId+patternId 유니크 제약 없음 — 완료된 프로젝트를 같은 도안으로 다시 시작할 수 있어야 함
   // "이미 진행 중인 프로젝트가 있으면 새로 안 만듦"은 status=IN_PROGRESS까지 포함해 서비스 로직에서 체크
+}
+
+// 프로젝트가 잡고 있는(또는 실제로 써버린) 실의 양.
+// 핵심 원칙: YarnBatch.skeinCount를 직접 깎지 않는다. 재고는 항상 "총 보유 - 이 테이블의 합계"로 계산하고,
+// 프로젝트를 삭제하거나 상태를 되돌리면 재고가 자동으로 복구된다 (비파괴적 차감).
+model ProjectYarnUsage {
+  id String @id @default(cuid())
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  yarnId    String
+  yarn      Yarn    @relation(fields: [yarnId], references: [id], onDelete: Cascade)
+
+  reservedM Float  // 예약(예상 사용)량, m 기준 정규화 — 연결 시점에 도안 requiredMinM으로 기본값을 채움
+  usedM     Float? // 완료 시 확정한 실제 사용량, m 기준. null이면 아직 미확정이라 reservedM을 그대로 소비량으로 취급
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 같은 실을 한 프로젝트에 두 번 연결할 이유가 없음 — 양을 늘리려면 reservedM을 수정
+  @@unique([projectId, yarnId])
+  @@index([yarnId])
 }
 
 model ProjectPhoto {

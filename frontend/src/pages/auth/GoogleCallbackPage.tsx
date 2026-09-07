@@ -20,7 +20,7 @@ export function GoogleCallbackPage() {
       return;
     }
     completeGoogleLogin(code)
-      .then(() => navigate("/yarns", { replace: true }))
+      .then(() => navigate("/home", { replace: true }))
       .catch(() => setError("구글 로그인에 실패했어요"));
   }, [searchParams, completeGoogleLogin, navigate]);
 

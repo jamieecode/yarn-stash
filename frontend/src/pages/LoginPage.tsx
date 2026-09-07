@@ -14,7 +14,7 @@ export function LoginPage() {
     setIsStartingGuest(true);
     try {
       await loginAsGuest();
-      navigate("/yarns", { replace: true });
+      navigate("/home", { replace: true });
     } catch {
       setError("게스트로 시작하지 못했어요. 잠시 후 다시 시도해주세요");
     } finally {

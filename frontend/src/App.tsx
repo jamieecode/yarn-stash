@@ -3,6 +3,7 @@ import { MainLayout } from "./components/layout/MainLayout";
 import { PlainLayout } from "./components/layout/PlainLayout";
 import { RequireSession } from "./auth/RequireSession";
 import { IndexGate } from "./pages/IndexGate";
+import { HomePage } from "./pages/HomePage";
 import { KakaoCallbackPage } from "./pages/auth/KakaoCallbackPage";
 import { GoogleCallbackPage } from "./pages/auth/GoogleCallbackPage";
 import { YarnListPage } from "./pages/yarn/YarnListPage";
@@ -29,6 +30,7 @@ function App() {
 
       <Route element={<RequireSession />}>
         <Route element={<MainLayout />}>
+          <Route path="/home" element={<HomePage />} />
           <Route path="/yarns" element={<YarnListPage />} />
           <Route path="/patterns" element={<PatternListPage />} />
           <Route path="/projects" element={<ProjectListPage />} />

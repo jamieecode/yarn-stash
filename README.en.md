@@ -10,6 +10,8 @@ A personal inventory app for knitters and crocheters. Register the yarn you own 
 - **Local DB + Ravelry hybrid search**: When registering yarn or patterns, the local database is queried first; if nothing matches, it falls back to the Ravelry API and caches only the item the user actually selects.
 - **Guest-first authentication**: Usable immediately without signing in. Guest data is carried over seamlessly when the user later upgrades to Kakao/Google login.
 - **Project tracker**: Once a project is started from a pattern, track it with a row counter, progress photos, and status (in progress / completed / on hold).
+- **Home dashboard**: One screen showing how many meters of yarn are actually available right now, how the stash breaks down by weight category, and how many patterns can be started immediately with what is on hand.
+- **Automatic stash deduction**: Linking yarn to a project reserves that amount, so it drops out of other patterns' matches. Completing the project confirms the actual amount used. Deleting the project or unlinking the yarn restores the stash — so yarn you have already used up never keeps showing as "sufficient".
 
 Background on the feature set and data model is in [`docs/실_스태시_트래커_기획서.md`](docs/실_스태시_트래커_기획서.md) (Korean), and per-screen specs are in [`docs/실_스태시_트래커_화면설계서.md`](docs/실_스태시_트래커_화면설계서.md) (Korean).
 

@@ -1,10 +1,25 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { toGrams, toMeters } from "../common/units.util";
-import { gaugeChip, needsLotMixing, totalMeters, yardageLabel, yardageRatioPercent } from "../common/matching.util";
+import {
+  committedMeters,
+  gaugeChip,
+  needsLotMixing,
+  scaleBatchesToAvailable,
+  totalMeters,
+  yardageLabel,
+  yardageRatioPercent,
+  type BatchLike,
+  type UsageLike,
+} from "../common/matching.util";
 import { CreateYarnDto, CreateBatchDto } from "./dto/create-yarn.dto";
 import { UpdateYarnDto } from "./dto/update-yarn.dto";
 import { UpdateBatchDto } from "./dto/update-batch.dto";
+
+// 어떤 프로젝트가 이 실을 얼마나 잡고 있는지 - 재고 계산(availableMeters)과 실 상세의 "사용 중" 목록에 함께 쓰임
+const USAGE_INCLUDE = {
+  include: { project: { select: { id: true, status: true, pattern: { select: { name: true } } } } },
+} as const;
 
 @Injectable()
 export class YarnService {
@@ -15,7 +30,7 @@ export class YarnService {
     userId: string,
     params: { q?: string; weightCategory?: string; sort?: string; includeConsumed?: boolean },
   ) {
-    return this.prisma.yarn.findMany({
+    const yarns = await this.prisma.yarn.findMany({
       where: {
         userId,
         consumed: params.includeConsumed ? undefined : false,
@@ -28,18 +43,27 @@ export class YarnService {
           ],
         }),
       },
-      include: { batches: true, photos: true },
+      include: { batches: true, photos: true, usages: USAGE_INCLUDE },
       orderBy: params.sort === "NAME" ? { brand: "asc" } : { createdAt: "desc" },
     });
+    return yarns.map((yarn) => this.withStock(yarn));
   }
 
   async findOne(userId: string, yarnId: string) {
     const yarn = await this.prisma.yarn.findFirst({
       where: { id: yarnId, userId },
-      include: { batches: true, photos: true },
+      include: { batches: true, photos: true, usages: USAGE_INCLUDE },
     });
     if (!yarn) throw new NotFoundException("실을 찾을 수 없어요");
-    return yarn;
+    return this.withStock(yarn);
+  }
+
+  // 재고 3종을 응답에 붙인다. 배치를 직접 깎지 않으므로(기획 결정) totalM은 늘 "산 만큼",
+  // availableM이 "지금 다른 도안에 쓸 수 있는 만큼"이고 목록/상세/매칭이 전부 이 값을 기준으로 표시한다
+  private withStock<T extends { batches: BatchLike[]; usages: UsageLike[] }>(yarn: T) {
+    const totalM = totalMeters(yarn.batches);
+    const committedM = committedMeters(yarn.usages);
+    return { ...yarn, totalM, committedM, availableM: Math.max(0, totalM - committedM) };
   }
 
   // 화면설계서 2번(실 등록) - 마스터 정보 + 최초 배치 1개 이상을 한 번에 생성.
@@ -136,7 +160,8 @@ export class YarnService {
   }
 
   // 화면설계서 3번(이 실로 뜰 수 있는 도안) - 무게 카테고리 일치 + 여유분 비율 + 게이지/로트 보조 칩
-  // 소진 처리된 실은 매칭 자체를 실행하지 않고(기획서 2.3), 무게 카테고리가 없으면 매칭 대상이 아니라 빈 배열
+  // 소진 처리된 실은 매칭 자체를 실행하지 않고(기획서 2.3), 무게 카테고리가 없으면 매칭 대상이 아니라 빈 배열.
+  // 기준은 총 보유량이 아니라 가용량(availableM) - 이미 다른 프로젝트가 잡아둔 실을 "충분함"으로 보여주면 안 됨
   async findPatternMatches(userId: string, yarnId: string) {
     const yarn = await this.findOne(userId, yarnId);
     if (yarn.consumed || !yarn.weightCategory) return [];
@@ -144,17 +169,17 @@ export class YarnService {
     const patterns = await this.prisma.pattern.findMany({
       where: { weightCategory: yarn.weightCategory },
     });
-    const totalM = totalMeters(yarn.batches);
+    const availableBatches = scaleBatchesToAvailable(yarn.batches, yarn.availableM);
 
     return patterns
       .map((pattern) => {
-        const ratioPercent = yardageRatioPercent(totalM, pattern.requiredMinM);
+        const ratioPercent = yardageRatioPercent(yarn.availableM, pattern.requiredMinM);
         return {
           pattern,
           ratioPercent,
           label: yardageLabel(ratioPercent),
           gaugeChip: gaugeChip(yarn.gaugeStitches, pattern.gaugeStitches),
-          needsLotMixing: needsLotMixing(yarn.batches, pattern.requiredMinM),
+          needsLotMixing: needsLotMixing(availableBatches, pattern.requiredMinM),
         };
       })
       .sort((a, b) => b.ratioPercent - a.ratioPercent);

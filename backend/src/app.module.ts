@@ -7,6 +7,7 @@ import { YarnCatalogModule } from "./yarn-catalog/yarn-catalog.module";
 import { YarnModule } from "./yarn/yarn.module";
 import { PatternModule } from "./pattern/pattern.module";
 import { ProjectModule } from "./project/project.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ProjectModule } from "./project/project.module";
     YarnModule,
     PatternModule,
     ProjectModule,
+    DashboardModule,
   ],
   controllers: [AppController],
 })

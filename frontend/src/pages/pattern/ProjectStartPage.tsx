@@ -65,6 +65,11 @@ export function ProjectStartPage() {
                 </span>
                 <MatchTierChip label={m.label} />
               </div>
+              {/* 다른 프로젝트가 일부를 잡고 있으면 총 보유량이 아니라 "지금 쓸 수 있는 양"을 봐야 판단이 됨 */}
+              <div className="mt-1 text-[11px] text-muted">
+                쓸 수 있는 양 {Math.round(m.yarn.availableM)}m
+                {m.yarn.committedM > 0 && ` (보유 ${Math.round(m.yarn.totalM)}m 중)`}
+              </div>
             </button>
           ))}
         </div>

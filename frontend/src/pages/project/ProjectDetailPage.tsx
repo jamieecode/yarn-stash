@@ -4,8 +4,9 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { TopBar } from "../../components/layout/TopBar";
 import { PhotoUploader } from "../../components/ui/PhotoUploader";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import { ProjectYarnList } from "../../components/project/ProjectYarnList";
+import { CompleteProjectModal } from "../../components/project/CompleteProjectModal";
 import { useDeleteProjectMutation, useProjectQuery, useUpdateProjectMutation } from "../../api/useProjects";
-import { usePatternYarnMatchesQuery } from "../../api/usePatterns";
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_ORDER, type PhotoInput, type ProjectStatus } from "../../types/api";
 
 // 화면설계서 7-1(프로젝트 상세)
@@ -19,9 +20,7 @@ export function ProjectDetailPage() {
   const [memo, setMemo] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
-  const [showYarnPicker, setShowYarnPicker] = useState(false);
-
-  const { data: yarnMatches } = usePatternYarnMatchesQuery(showYarnPicker ? project?.patternId : undefined);
+  const [confirmingComplete, setConfirmingComplete] = useState(false);
 
   useEffect(() => {
     setMemo(project?.memo ?? "");
@@ -36,8 +35,20 @@ export function ProjectDetailPage() {
     );
   }
 
+  // 완료로 넘어갈 때는 실사용량을 먼저 확정받는다 - 아직 확정 안 된 실이 있을 때만 모달을 띄우고,
+  // 확정할 게 없으면(연결된 실이 없거나 이미 다 확정됨) 그냥 상태만 바꾼다
   function handleStatusChange(status: ProjectStatus) {
+    const needsConfirm = status === "COMPLETED" && project!.yarnUsages.some((u) => u.usedM == null);
+    if (needsConfirm) {
+      setConfirmingComplete(true);
+      return;
+    }
     updateProject.mutate({ status });
+  }
+
+  async function handleComplete(confirmUsages: { yarnId: string; usedM: number }[]) {
+    await updateProject.mutateAsync({ status: "COMPLETED", confirmUsages });
+    setConfirmingComplete(false);
   }
 
   function handleRowChange(delta: number) {
@@ -58,11 +69,6 @@ export function ProjectDetailPage() {
     navigate("/projects", { replace: true });
   }
 
-  function handlePickYarn(yarnId: string) {
-    updateProject.mutate({ yarnId });
-    setShowYarnPicker(false);
-  }
-
   return (
     <div className="flex flex-1 flex-col">
       <TopBar
@@ -75,31 +81,7 @@ export function ProjectDetailPage() {
       />
 
       <div className="p-4">
-        {project.yarn ? (
-          <p className="text-sm text-muted">
-            {project.yarn.brand} {project.yarn.lineName}
-          </p>
-        ) : (
-          <button
-            onClick={() => setShowYarnPicker((v) => !v)}
-            className="cursor-pointer rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-accent"
-          >
-            실 연결하기
-          </button>
-        )}
-        {showYarnPicker && (
-          <div className="mt-2 flex flex-col gap-1.5">
-            {yarnMatches?.map((m) => (
-              <button
-                key={m.yarn.id}
-                onClick={() => handlePickYarn(m.yarn.id)}
-                className="cursor-pointer rounded-lg border border-border bg-card p-2 text-left text-sm"
-              >
-                {m.yarn.brand} {m.yarn.lineName}
-              </button>
-            ))}
-          </div>
-        )}
+        <ProjectYarnList project={project} />
 
         <div className="mt-4 flex gap-2">
           {PROJECT_STATUS_ORDER.map((s) => (
@@ -116,7 +98,7 @@ export function ProjectDetailPage() {
         </div>
         {project.status === "COMPLETED" && (
           <p className="mt-2 text-xs text-sub">
-            완료를 축하해요! 실 소진 처리는 실 상세에서 직접 할 수 있어요
+            완료를 축하해요! 사용한 만큼 재고에 반영됐어요
           </p>
         )}
 
@@ -176,6 +158,9 @@ export function ProjectDetailPage() {
           onConfirm={handleReset}
           onCancel={() => setConfirmingReset(false)}
         />
+      )}
+      {confirmingComplete && (
+        <CompleteProjectModal project={project} onConfirm={handleComplete} onCancel={() => setConfirmingComplete(false)} />
       )}
     </div>
   );

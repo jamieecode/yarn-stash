@@ -32,9 +32,25 @@ describe("YarnService", () => {
     });
 
     it("returns the yarn including batches/photos when found", async () => {
-      const yarn = { id: "yarn-1", userId: "user-1", batches: [], photos: [] };
+      const yarn = { id: "yarn-1", userId: "user-1", batches: [], photos: [], usages: [] };
       prisma.yarn.findFirst.mockResolvedValue(yarn);
-      await expect(service.findOne("user-1", "yarn-1")).resolves.toBe(yarn);
+      await expect(service.findOne("user-1", "yarn-1")).resolves.toMatchObject({ id: "yarn-1", batches: [], photos: [] });
+    });
+
+    it("reports total/committed/available stock so the list and detail don't have to recompute it", async () => {
+      prisma.yarn.findFirst.mockResolvedValue({
+        id: "yarn-1",
+        userId: "user-1",
+        batches: [{ dyeLot: null, skeinCount: 5, lengthPerSkeinM: 100 }], // 500m held
+        photos: [],
+        usages: [{ reservedM: 200, usedM: null, project: { status: "IN_PROGRESS" } }],
+      });
+
+      await expect(service.findOne("user-1", "yarn-1")).resolves.toMatchObject({
+        totalM: 500,
+        committedM: 200,
+        availableM: 300,
+      });
     });
   });
 
@@ -83,6 +99,7 @@ describe("YarnService", () => {
         consumed: true,
         weightCategory: "WORSTED",
         batches: [],
+        usages: [],
       });
 
       const result = await service.findPatternMatches("user-1", "yarn-1");
@@ -98,6 +115,7 @@ describe("YarnService", () => {
         consumed: false,
         weightCategory: null,
         batches: [],
+        usages: [],
       });
 
       const result = await service.findPatternMatches("user-1", "yarn-1");
@@ -114,6 +132,7 @@ describe("YarnService", () => {
         weightCategory: "WORSTED",
         gaugeStitches: 18,
         batches: [{ dyeLot: null, skeinCount: 2, lengthPerSkeinM: 100 }], // 200m held
+        usages: [],
       });
       prisma.pattern.findMany.mockResolvedValue([
         { id: "pattern-tight", requiredMinM: 190, gaugeStitches: 18 }, // ~105% -> TIGHT
@@ -127,6 +146,44 @@ describe("YarnService", () => {
       expect(result[0].gaugeChip).toBe("MATCH");
       expect(result[1].label).toBe("TIGHT");
       expect(prisma.pattern.findMany).toHaveBeenCalledWith({ where: { weightCategory: "WORSTED" } });
+    });
+
+    // 이 기능의 핵심 - 다른 프로젝트가 잡아둔 실은 그만큼 빼고 매칭해야 "충분함"이 거짓말이 되지 않음
+    it("matches on the available amount, not the total held, when another project already reserved the yarn", async () => {
+      prisma.yarn.findFirst.mockResolvedValue({
+        id: "yarn-1",
+        userId: "user-1",
+        consumed: false,
+        weightCategory: "WORSTED",
+        gaugeStitches: null,
+        batches: [{ dyeLot: null, skeinCount: 2, lengthPerSkeinM: 100 }], // 200m held
+        usages: [{ reservedM: 150, usedM: null, project: { status: "IN_PROGRESS" } }], // 50m actually free
+      });
+      prisma.pattern.findMany.mockResolvedValue([{ id: "pattern-1", requiredMinM: 100, gaugeStitches: null }]);
+
+      const result = await service.findPatternMatches("user-1", "yarn-1");
+
+      // 총 보유량(200m) 기준이면 200% AMPLE로 떴을 상황
+      expect(result[0].ratioPercent).toBe(50);
+      expect(result[0].label).toBe("INSUFFICIENT");
+    });
+
+    it("frees the reservation back up once the holding project is deleted (usages disappear with it)", async () => {
+      prisma.yarn.findFirst.mockResolvedValue({
+        id: "yarn-1",
+        userId: "user-1",
+        consumed: false,
+        weightCategory: "WORSTED",
+        gaugeStitches: null,
+        batches: [{ dyeLot: null, skeinCount: 2, lengthPerSkeinM: 100 }],
+        usages: [],
+      });
+      prisma.pattern.findMany.mockResolvedValue([{ id: "pattern-1", requiredMinM: 100, gaugeStitches: null }]);
+
+      const result = await service.findPatternMatches("user-1", "yarn-1");
+
+      expect(result[0].ratioPercent).toBe(200);
+      expect(result[0].label).toBe("AMPLE");
     });
   });
 });

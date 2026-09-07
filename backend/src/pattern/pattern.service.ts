@@ -1,7 +1,16 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { toMeters } from "../common/units.util";
-import { gaugeChip, needsLotMixing, totalMeters, yardageLabel, yardageRatioPercent } from "../common/matching.util";
+import {
+  availableMeters,
+  committedMeters,
+  gaugeChip,
+  needsLotMixing,
+  scaleBatchesToAvailable,
+  totalMeters,
+  yardageLabel,
+  yardageRatioPercent,
+} from "../common/matching.util";
 import { RavelryService } from "../ravelry/ravelry.service";
 import { CreatePatternDto } from "./dto/create-pattern.dto";
 import { UpdatePatternDto } from "./dto/update-pattern.dto";
@@ -141,24 +150,27 @@ export class PatternService {
   }
 
   // 화면설계서 6번(내가 가진 실 중 맞는 것) - 같은 무게 카테고리 + consumed=false, 100% 미만도 숨기지 않고
-  // 여유분 비율로 정렬(실→도안 방향과 동일한 4단계 칩 체계, 기획서 2.3/2.6)
+  // 여유분 비율로 정렬(실→도안 방향과 동일한 4단계 칩 체계, 기획서 2.3/2.6).
+  // 실→도안 방향과 마찬가지로 총 보유량이 아니라 가용량 기준 - 다른 프로젝트가 이미 잡아둔 실은 그만큼 빠진다
   async findYarnMatches(userId: string, patternId: string) {
     const pattern = await this.findOne(patternId);
     const yarns = await this.prisma.yarn.findMany({
       where: { userId, weightCategory: pattern.weightCategory, consumed: false },
-      include: { batches: true },
+      include: { batches: true, usages: { include: { project: { select: { status: true } } } } },
     });
 
     return yarns
       .map((yarn) => {
         const totalM = totalMeters(yarn.batches);
-        const ratioPercent = yardageRatioPercent(totalM, pattern.requiredMinM);
+        const committedM = committedMeters(yarn.usages);
+        const availableM = availableMeters(yarn.batches, yarn.usages);
+        const ratioPercent = yardageRatioPercent(availableM, pattern.requiredMinM);
         return {
-          yarn,
+          yarn: { ...yarn, totalM, committedM, availableM },
           ratioPercent,
           label: yardageLabel(ratioPercent),
           gaugeChip: gaugeChip(yarn.gaugeStitches, pattern.gaugeStitches),
-          needsLotMixing: needsLotMixing(yarn.batches, pattern.requiredMinM),
+          needsLotMixing: needsLotMixing(scaleBatchesToAvailable(yarn.batches, availableM), pattern.requiredMinM),
         };
       })
       .sort((a, b) => b.ratioPercent - a.ratioPercent);

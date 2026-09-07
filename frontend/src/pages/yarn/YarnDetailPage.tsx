@@ -99,8 +99,26 @@ export function YarnDetailPage() {
         <div className="p-4">
           <div className="mb-3 rounded-xl bg-card p-3 text-sm text-muted">
             총 {yarn.batches.reduce((s, b) => s + b.skeinCount, 0)}타래 · {yarn.batches.reduce((s, b) => s + b.skeinCount * b.weightPerSkeinG, 0)}g ·{" "}
-            {yarn.batches.reduce((s, b) => s + b.skeinCount * b.lengthPerSkeinM, 0)}m
+            {Math.round(yarn.totalM)}m
+            {yarn.committedM > 0 && (
+              <div className="mt-1.5 border-t border-border pt-1.5 text-xs">
+                프로젝트 사용 {Math.round(yarn.committedM)}m ·{" "}
+                <span className="font-semibold text-text">쓸 수 있는 양 {Math.round(yarn.availableM)}m</span>
+              </div>
+            )}
           </div>
+          {yarn.usages && yarn.usages.length > 0 && (
+            <div className="mb-3 flex flex-col gap-1">
+              {yarn.usages.map((u) => (
+                <div key={u.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs">
+                  <span className="truncate text-muted">{u.project.pattern.name}</span>
+                  <span className="shrink-0 text-sub">
+                    {Math.round(u.usedM ?? u.reservedM)}m {u.usedM == null ? "예약" : "사용"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             {yarn.batches.map((batch) => (
               <BatchRow key={batch.id} yarnId={yarn.id} batch={batch} />

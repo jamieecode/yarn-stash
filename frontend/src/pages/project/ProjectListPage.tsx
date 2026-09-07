@@ -2,13 +2,21 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProjectsQuery } from "../../api/useProjects";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { PROJECT_STATUS_LABEL, PROJECT_STATUS_ORDER, type ProjectStatus } from "../../types/api";
+import { PROJECT_STATUS_LABEL, PROJECT_STATUS_ORDER, type Project, type ProjectStatus } from "../../types/api";
 
 const STATUS_BADGE_CLASS: Record<ProjectStatus, string> = {
   IN_PROGRESS: "bg-accent-soft text-accent",
   COMPLETED: "bg-sub-soft text-sub",
   ON_HOLD: "bg-warn-soft text-warn",
 };
+
+// 카드 한 줄에 실 이름을 다 나열하면 넘치므로 첫 실만 쓰고 나머지는 개수로 접는다 (배색 프로젝트 대응)
+function describeYarns(project: Project) {
+  const [first, ...rest] = project.yarnUsages;
+  if (!first) return "실 미연결";
+  const name = [first.yarn.brand, first.yarn.lineName].filter(Boolean).join(" ");
+  return rest.length > 0 ? `${name} 외 ${rest.length}개` : name;
+}
 
 // 화면설계서 7번(프로젝트 목록)
 export function ProjectListPage() {
@@ -49,7 +57,7 @@ export function ProjectListPage() {
                   </span>
                 </div>
                 <div className="mt-1 text-xs text-muted">
-                  {project.yarn ? `${project.yarn.brand} ${project.yarn.lineName ?? ""}` : "실 미연결"} · {project.currentRow}단
+                  {describeYarns(project)} · {project.currentRow}단
                 </div>
                 <div className="mt-1 text-[11px] text-muted">{new Date(project.updatedAt).toLocaleDateString()}</div>
               </button>

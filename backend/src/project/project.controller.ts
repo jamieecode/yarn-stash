@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } f
 import { ProjectService } from "./project.service";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { CreateProjectDto } from "./dto/create-project.dto";
+import { CreateProjectYarnDto, UpdateProjectYarnDto } from "./dto/project-yarn.dto";
 import { AuthGuard } from "../common/guards/auth.guard";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 
@@ -38,5 +39,26 @@ export class ProjectController {
   @Delete(":id")
   remove(@CurrentUser() user: { userId: string }, @Param("id") id: string) {
     return this.projectService.remove(user.userId, id);
+  }
+
+  // 프로젝트가 잡고 있는 실 관리 - 연결하면 그만큼 실 재고의 가용량에서 빠지고, 해제하면 돌아온다
+  @Post(":id/yarns")
+  addYarn(@CurrentUser() user: { userId: string }, @Param("id") id: string, @Body() dto: CreateProjectYarnDto) {
+    return this.projectService.addYarn(user.userId, id, dto);
+  }
+
+  @Patch(":id/yarns/:yarnId")
+  updateYarn(
+    @CurrentUser() user: { userId: string },
+    @Param("id") id: string,
+    @Param("yarnId") yarnId: string,
+    @Body() dto: UpdateProjectYarnDto,
+  ) {
+    return this.projectService.updateYarn(user.userId, id, yarnId, dto);
+  }
+
+  @Delete(":id/yarns/:yarnId")
+  removeYarn(@CurrentUser() user: { userId: string }, @Param("id") id: string, @Param("yarnId") yarnId: string) {
+    return this.projectService.removeYarn(user.userId, id, yarnId);
   }
 }

@@ -156,8 +156,8 @@ describe("PatternService", () => {
     it("only matches consumed=false yarns of the same weight category, sorted by ratio descending", async () => {
       prisma.pattern.findUnique.mockResolvedValue({ id: "pattern-1", weightCategory: "WORSTED", requiredMinM: 100 });
       prisma.yarn.findMany.mockResolvedValue([
-        { id: "yarn-tight", gaugeStitches: null, batches: [{ dyeLot: null, skeinCount: 1, lengthPerSkeinM: 105 }] },
-        { id: "yarn-ample", gaugeStitches: null, batches: [{ dyeLot: null, skeinCount: 1, lengthPerSkeinM: 300 }] },
+        { id: "yarn-tight", gaugeStitches: null, batches: [{ dyeLot: null, skeinCount: 1, lengthPerSkeinM: 105 }], usages: [] },
+        { id: "yarn-ample", gaugeStitches: null, batches: [{ dyeLot: null, skeinCount: 1, lengthPerSkeinM: 300 }], usages: [] },
       ]);
 
       const result = await service.findYarnMatches("user-1", "pattern-1");
@@ -166,6 +166,32 @@ describe("PatternService", () => {
         expect.objectContaining({ where: { userId: "user-1", weightCategory: "WORSTED", consumed: false } }),
       );
       expect(result.map((r) => r.yarn.id)).toEqual(["yarn-ample", "yarn-tight"]);
+    });
+
+    // 도안→실 방향도 실→도안 방향과 같은 기준이어야 함 - 한쪽만 총 보유량을 쓰면 두 화면이 서로 다른 답을 냄
+    it("ranks by the available amount so a yarn another project is holding drops down the list", async () => {
+      prisma.pattern.findUnique.mockResolvedValue({ id: "pattern-1", weightCategory: "WORSTED", requiredMinM: 100 });
+      prisma.yarn.findMany.mockResolvedValue([
+        {
+          id: "yarn-reserved",
+          gaugeStitches: null,
+          batches: [{ dyeLot: null, skeinCount: 1, lengthPerSkeinM: 300 }], // 300m held, but 280m is spoken for
+          usages: [{ reservedM: 280, usedM: null, project: { status: "IN_PROGRESS" } }],
+        },
+        {
+          id: "yarn-free",
+          gaugeStitches: null,
+          batches: [{ dyeLot: null, skeinCount: 1, lengthPerSkeinM: 150 }],
+          usages: [],
+        },
+      ]);
+
+      const result = await service.findYarnMatches("user-1", "pattern-1");
+
+      expect(result.map((r) => r.yarn.id)).toEqual(["yarn-free", "yarn-reserved"]);
+      expect(result[0].yarn.availableM).toBe(150);
+      expect(result[1].yarn.availableM).toBe(20);
+      expect(result[1].label).toBe("INSUFFICIENT");
     });
   });
 

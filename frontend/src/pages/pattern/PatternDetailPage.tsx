@@ -186,6 +186,12 @@ export function PatternDetailPage() {
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <GaugeChipDisplay chip={m.gaugeChip} />
                 </div>
+                {/* 매칭 판정 자체가 가용량 기준이므로, 일부가 묶여 있으면 그 사실을 같이 보여줘야 납득이 됨 */}
+                {m.yarn.committedM > 0 && (
+                  <p className="mt-1 text-[11px] text-muted">
+                    쓸 수 있는 양 {Math.round(m.yarn.availableM)}m (보유 {Math.round(m.yarn.totalM)}m 중)
+                  </p>
+                )}
                 {m.needsLotMixing && <p className="mt-1 text-xs text-warn">로트를 섞어야 해요</p>}
               </button>
             ))}
