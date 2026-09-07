@@ -4,6 +4,14 @@
 
 A personal inventory app for knitters and crocheters. Register the yarn you own and get pattern recommendations you can actually knit with it — or start from a pattern you like and check whether any of your yarn would work for it.
 
+**[Live demo →](https://yarn-stash-flax.vercel.app/)** (usable immediately as a guest; the backend runs on Render's free tier, so the first request after idling can take up to a few dozen seconds to cold-start)
+
+## Screenshots
+
+| Home dashboard | Yarn list | Pattern list | Project detail |
+|---|---|---|---|
+| ![Home dashboard](docs/screenshots/home.jpg) | ![Yarn list](docs/screenshots/yarns.jpg) | ![Pattern list](docs/screenshots/patterns.jpg) | ![Project detail](docs/screenshots/project.jpg) |
+
 ## Key Features
 
 - **Bidirectional yarn ↔ pattern matching**: Matches on weight-category compatibility and yardage sufficiency (owned vs. required), scored on a four-level scale — plenty / sufficient / tight / insufficient. Also flags gauge approximation and dye-lot matching as supporting signals.
