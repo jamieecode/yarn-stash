@@ -1,16 +1,22 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { toMeters } from "../common/units.util";
+import { committedMeters, totalMeters, type BatchLike, type UsageLike } from "../common/matching.util";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { CreateProjectYarnDto, UpdateProjectYarnDto } from "./dto/project-yarn.dto";
 
 // 프로젝트 카드/상세 모두 "어떤 도안을, 어떤 실로, 얼마나 잡고" 있는지를 함께 보여주므로 include를 공유한다.
-// 실 사진은 카드 썸네일에 쓰이고, 배치는 "예약량이 보유량을 넘었는지" 경고를 프론트에서 계산하는 데 쓰인다
+// 실 사진은 카드 썸네일에 쓰이고, 배치는 "예약량이 보유량을 넘었는지" 경고를 프론트에서 계산하는 데 쓰인다.
+// usages는 이 실의 totalM/availableM 계산(withYarnStock)에 필요 - yarn.service.ts와 동일한 방식
 const PROJECT_INCLUDE = {
   pattern: true,
   photos: true,
   yarnUsages: {
-    include: { yarn: { include: { batches: true, photos: true } } },
+    include: {
+      yarn: {
+        include: { batches: true, photos: true, usages: { include: { project: { select: { status: true } } } } },
+      },
+    },
     orderBy: { createdAt: "asc" },
   },
 } as const;
@@ -22,11 +28,12 @@ export class ProjectService {
   // 화면설계서 7번(프로젝트 목록).
   // patternId로도 필터 가능 - 도안 상세에서 "이미 진행 중인 프로젝트가 있는지"(본인 소유 범위 내에서) 확인할 때 재사용 (화면설계서 6번)
   async findAll(userId: string, status?: string, patternId?: string) {
-    return this.prisma.project.findMany({
+    const projects = await this.prisma.project.findMany({
       where: { userId, status: status as any, patternId },
       include: PROJECT_INCLUDE,
       orderBy: { updatedAt: "desc" },
     });
+    return projects.map((p) => this.withYarnStock(p));
   }
 
   async findOne(userId: string, projectId: string) {
@@ -35,7 +42,21 @@ export class ProjectService {
       include: PROJECT_INCLUDE,
     });
     if (!project) throw new NotFoundException("프로젝트를 찾을 수 없어요");
-    return project;
+    return this.withYarnStock(project);
+  }
+
+  // yarn.service.ts의 withStock과 동일한 계산 - 프로젝트에 연결된 실도 목록/상세와 같은 기준(availableM)으로 보여줘야 한다
+  private withYarnStock<T extends { yarnUsages: { yarn: { batches: BatchLike[]; usages: UsageLike[] } }[] }>(
+    project: T,
+  ) {
+    return {
+      ...project,
+      yarnUsages: project.yarnUsages.map((u) => {
+        const totalM = totalMeters(u.yarn.batches);
+        const committedM = committedMeters(u.yarn.usages);
+        return { ...u, yarn: { ...u.yarn, totalM, committedM, availableM: Math.max(0, totalM - committedM) } };
+      }),
+    };
   }
 
   // 화면설계서 6-2(프로젝트 시작). Project는 userId+patternId 유니크 제약이 없으므로
@@ -76,7 +97,7 @@ export class ProjectService {
       );
     }
 
-    return this.prisma.project.update({
+    const updated = await this.prisma.project.update({
       where: { id: projectId },
       data: {
         status: dto.status as any,
@@ -88,6 +109,7 @@ export class ProjectService {
       },
       include: PROJECT_INCLUDE,
     });
+    return this.withYarnStock(updated);
   }
 
   // 소유자 검증 후 삭제 (사진·실 사용량은 onDelete: Cascade라 자동 정리 - 사용량이 사라지면서 재고도 자동 복구됨)

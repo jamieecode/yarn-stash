@@ -45,14 +45,14 @@ describe("ProjectService", () => {
 
   describe("startOrResume", () => {
     it("resumes the existing IN_PROGRESS project instead of creating a duplicate", async () => {
-      const existing = { id: "project-1", userId: "user-1", patternId: "pattern-1", status: "IN_PROGRESS" };
+      const existing = { id: "project-1", userId: "user-1", patternId: "pattern-1", status: "IN_PROGRESS", yarnUsages: [] };
       prisma.project.findFirst.mockResolvedValue(existing);
       prisma.yarn.findFirst.mockResolvedValue({ id: "yarn-1", userId: "user-1" });
       prisma.pattern.findUnique.mockResolvedValue({ id: "pattern-1", requiredMinM: 400 });
 
       const result = await service.startOrResume("user-1", "pattern-1", "yarn-1");
 
-      expect(result).toBe(existing);
+      expect(result).toEqual(existing);
       expect(prisma.project.findFirst).toHaveBeenCalledWith({
         where: { userId: "user-1", patternId: "pattern-1", status: "IN_PROGRESS" },
       });
@@ -60,7 +60,9 @@ describe("ProjectService", () => {
     });
 
     it("creates a fresh project (currentRow 0) when there's no in-progress project for this pattern", async () => {
-      prisma.project.findFirst.mockResolvedValueOnce(null).mockResolvedValue({ id: "project-2", userId: "user-1", patternId: "pattern-1" });
+      prisma.project.findFirst
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue({ id: "project-2", userId: "user-1", patternId: "pattern-1", yarnUsages: [] });
       prisma.project.create.mockResolvedValue({ id: "project-2", patternId: "pattern-1" });
       prisma.yarn.findFirst.mockResolvedValue({ id: "yarn-1", userId: "user-1" });
       prisma.pattern.findUnique.mockResolvedValue({ id: "pattern-1", requiredMinM: 400 });
@@ -74,7 +76,9 @@ describe("ProjectService", () => {
 
     // 실 선택은 이제 Project 컬럼이 아니라 ProjectYarnUsage 레코드로 표현되고, 예약량이 함께 잡힌다
     it("links the picked yarn as a usage reserving the pattern's requiredMinM", async () => {
-      prisma.project.findFirst.mockResolvedValueOnce(null).mockResolvedValue({ id: "project-2", userId: "user-1", patternId: "pattern-1" });
+      prisma.project.findFirst
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue({ id: "project-2", userId: "user-1", patternId: "pattern-1", yarnUsages: [] });
       prisma.project.create.mockResolvedValue({ id: "project-2", patternId: "pattern-1" });
       prisma.yarn.findFirst.mockResolvedValue({ id: "yarn-1", userId: "user-1" });
       prisma.pattern.findUnique.mockResolvedValue({ id: "pattern-1", requiredMinM: 400 });
@@ -87,7 +91,9 @@ describe("ProjectService", () => {
     });
 
     it("starts without touching yarn stock when no yarn was picked", async () => {
-      prisma.project.findFirst.mockResolvedValueOnce(null).mockResolvedValue({ id: "project-3", userId: "user-1" });
+      prisma.project.findFirst
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue({ id: "project-3", userId: "user-1", yarnUsages: [] });
       prisma.project.create.mockResolvedValue({ id: "project-3" });
 
       await service.startOrResume("user-1", "pattern-1");
@@ -97,7 +103,9 @@ describe("ProjectService", () => {
 
     it("allows starting a new project even if a COMPLETED one exists for the same pattern (재작업 허용, 기획서 2.14)", async () => {
       // findFirst is scoped to status: IN_PROGRESS, so a completed one won't be picked up here
-      prisma.project.findFirst.mockResolvedValueOnce(null).mockResolvedValue({ id: "project-3", userId: "user-1" });
+      prisma.project.findFirst
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue({ id: "project-3", userId: "user-1", yarnUsages: [] });
       prisma.project.create.mockResolvedValue({ id: "project-3" });
 
       await service.startOrResume("user-1", "pattern-1");
@@ -196,7 +204,7 @@ describe("ProjectService", () => {
 
     it("updates the project once ownership is confirmed", async () => {
       prisma.project.findFirst.mockResolvedValue({ id: "project-1", userId: "user-1" });
-      prisma.project.update.mockResolvedValue({ id: "project-1", currentRow: 5 });
+      prisma.project.update.mockResolvedValue({ id: "project-1", currentRow: 5, yarnUsages: [] });
 
       await service.update("user-1", "project-1", { currentRow: 5 });
 
@@ -208,7 +216,7 @@ describe("ProjectService", () => {
     // 완료 처리와 실사용량 확정이 한 요청 안에서 끝나야 "완료했는데 재고는 그대로"인 중간 상태가 안 생김
     it("confirms the actual yarn usage in the same request that completes the project", async () => {
       prisma.project.findFirst.mockResolvedValue({ id: "project-1", userId: "user-1" });
-      prisma.project.update.mockResolvedValue({ id: "project-1", status: "COMPLETED" });
+      prisma.project.update.mockResolvedValue({ id: "project-1", status: "COMPLETED", yarnUsages: [] });
 
       await service.update("user-1", "project-1", {
         status: "COMPLETED",
