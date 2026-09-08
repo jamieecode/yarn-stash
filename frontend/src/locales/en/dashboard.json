@@ -1,0 +1,28 @@
+{
+  "home": {
+    "headerNickname": "{{nickname}}'s stash",
+    "headerDefault": "My stash",
+    "emptyMessage": "Register the yarn you own and we'll find patterns you can knit with it",
+    "emptyCta": "Register yarn",
+    "summaryTitle": "Available right now",
+    "summaryTotalOwned": "{{meters}}m owned in total",
+    "summaryYarnAndSkeins": "{{count}} yarns · {{skeins}} skeins",
+    "summaryCommittedShare": "{{percent}}% in use for projects",
+    "readyHeading": "Patterns you can start right now",
+    "readyEmpty": "No pattern has enough of a single yarn yet — try registering more patterns",
+    "readyCount_one": "{{count}} pattern is fully covered by one yarn",
+    "readyCount_other": "{{count}} patterns are fully covered by one yarn",
+    "readyRequiredMeters": "Needs {{meters}}m",
+    "projectsHeading": "Projects",
+    "tileBookmarked": "Bookmarked"
+  },
+  "distribution": {
+    "heading": "Stash by weight",
+    "categoryCount_one": "{{count}} category",
+    "categoryCount_other": "{{count}} categories",
+    "legendAvailable": "Available",
+    "legendCommitted": "In use",
+    "yarnCount_one": "{{count}}",
+    "yarnCount_other": "{{count}}"
+  }
+}

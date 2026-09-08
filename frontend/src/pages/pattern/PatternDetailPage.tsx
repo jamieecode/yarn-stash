@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Heart, Pencil, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { TopBar } from "../../components/layout/TopBar";
 import { WeightBadge } from "../../components/ui/WeightBadge";
 import { CraftBadge } from "../../components/ui/CraftBadge";
@@ -21,14 +22,9 @@ import { useAuth } from "../../auth/AuthContext";
 import { api } from "../../lib/apiClient";
 import type { Project } from "../../types/api";
 
-const DELETE_REASON_TEXT: Record<string, string> = {
-  NOT_OWNER: "등록한 사람만 삭제할 수 있어요",
-  BOOKMARKED_BY_OTHERS: "다른 분들이 찜한 도안이라 삭제할 수 없어요",
-  HAS_PROJECT: "진행 중인 프로젝트가 있어 삭제할 수 없어요",
-};
-
 // 화면설계서 6번(도안 상세)
 export function PatternDetailPage() {
+  const { t } = useTranslation(["pattern", "common"]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -54,8 +50,8 @@ export function PatternDetailPage() {
   if (isLoading || !pattern) {
     return (
       <div className="flex flex-1 flex-col">
-        <TopBar title="도안 상세" />
-        <p className="p-6 text-center text-sm text-muted">불러오는 중...</p>
+        <TopBar title={t("pattern:detail.title")} />
+        <p className="p-6 text-center text-sm text-muted">{t("common:loading")}</p>
       </div>
     );
   }
@@ -90,18 +86,18 @@ export function PatternDetailPage() {
         title={pattern.name}
         right={
           <div className="flex gap-1">
-            <button onClick={handleToggleBookmark} aria-label="찜하기" className="cursor-pointer border-none bg-transparent p-1 text-accent">
+            <button onClick={handleToggleBookmark} aria-label={t("pattern:detail.bookmarkAria")} className="cursor-pointer border-none bg-transparent p-1 text-accent">
               <Heart size={18} fill={isBookmarked ? "currentColor" : "none"} />
             </button>
             {isOwner && (
-              <button onClick={() => navigate(`/patterns/${pattern.id}/edit`)} aria-label="수정" className="cursor-pointer border-none bg-transparent p-1 text-text">
+              <button onClick={() => navigate(`/patterns/${pattern.id}/edit`)} aria-label={t("pattern:detail.editAria")} className="cursor-pointer border-none bg-transparent p-1 text-text">
                 <Pencil size={18} />
               </button>
             )}
             {isOwner && (
               <button
                 onClick={() => deleteCheck?.canDelete && setConfirmingDelete(true)}
-                aria-label="삭제"
+                aria-label={t("pattern:detail.deleteAria")}
                 disabled={deleteCheck ? !deleteCheck.canDelete : false}
                 className="cursor-pointer border-none bg-transparent p-1 text-danger disabled:opacity-30"
               >
@@ -114,10 +110,10 @@ export function PatternDetailPage() {
 
       <div className="p-4">
         {pattern.designer && <p className="text-sm text-muted">{pattern.designer}</p>}
-        <p className="mt-1 text-xs text-muted">{pattern.sourceType === "RAVELRY" ? "Ravelry" : "내 DB"}</p>
+        <p className="mt-1 text-xs text-muted">{pattern.sourceType === "RAVELRY" ? "Ravelry" : t("pattern:detail.sourceMyDb")}</p>
 
         {isOwner && deleteCheck && !deleteCheck.canDelete && (
-          <p className="mt-2 text-xs text-danger">{DELETE_REASON_TEXT[deleteCheck.reason]}</p>
+          <p className="mt-2 text-xs text-danger">{t(`pattern:detail.deleteReason.${deleteCheck.reason}`)}</p>
         )}
 
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -125,32 +121,34 @@ export function PatternDetailPage() {
           <CraftBadge craftType={pattern.craftType} />
           <span className="text-xs text-muted">
             {pattern.requiredMaxM && pattern.requiredMaxM > pattern.requiredMinM
-              ? `${pattern.requiredMinM}~${pattern.requiredMaxM}m`
-              : `${pattern.requiredMinM}m`}
+              ? t("pattern:card.requiredRange", { min: pattern.requiredMinM, max: pattern.requiredMaxM })
+              : t("pattern:card.requiredMin", { min: pattern.requiredMinM })}
           </span>
         </div>
 
         {(pattern.originalYarnBrand || pattern.originalYarnLine) && (
           <div className="mt-2 text-xs text-muted">
-            원본 실: {[pattern.originalYarnBrand, pattern.originalYarnLine].filter(Boolean).join(" ")}
+            {t("pattern:detail.originalYarnLabel", {
+              name: [pattern.originalYarnBrand, pattern.originalYarnLine].filter(Boolean).join(" "),
+            })}
           </div>
         )}
 
         {pattern.sourceUrl && (
           <a href={pattern.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-accent underline">
-            원본 링크 보기
+            {t("pattern:detail.originalLinkLabel")}
           </a>
         )}
 
         {isBookmarked && (
           <div className="mt-4">
-            <label className="mb-1 block text-xs font-semibold text-muted">내 메모</label>
+            <label className="mb-1 block text-xs font-semibold text-muted">{t("pattern:detail.memoLabel")}</label>
             <textarea
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               onBlur={() => memo !== pattern.myBookmark?.memo && updateMemo.mutate(memo)}
               rows={2}
-              placeholder='예: "5.5mm로 바꿔서 뜰 것"'
+              placeholder={t("pattern:detail.memoPlaceholder")}
               className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm outline-none focus:border-accent"
             />
           </div>
@@ -161,14 +159,14 @@ export function PatternDetailPage() {
           disabled={isStarting}
           className="mt-4 w-full cursor-pointer rounded-xl border-none bg-accent py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
-          이 도안으로 시작하기
+          {t("pattern:detail.startProject")}
         </button>
       </div>
 
       <div className="p-4 pt-0">
-        <h2 className="mb-2 text-sm font-semibold text-text">내가 가진 실 중 맞는 것</h2>
-        {matchesLoading && <p className="py-6 text-center text-sm text-muted">불러오는 중...</p>}
-        {matches && matches.length === 0 && <EmptyState message="같은 굵기의 실이 없어요" />}
+        <h2 className="mb-2 text-sm font-semibold text-text">{t("pattern:detail.matchingYarnHeading")}</h2>
+        {matchesLoading && <p className="py-6 text-center text-sm text-muted">{t("common:loading")}</p>}
+        {matches && matches.length === 0 && <EmptyState message={t("pattern:detail.matchesEmpty")} />}
         {matches && matches.length > 0 && (
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
             {matches.map((m) => (
@@ -189,10 +187,13 @@ export function PatternDetailPage() {
                 {/* 매칭 판정 자체가 가용량 기준이므로, 일부가 묶여 있으면 그 사실을 같이 보여줘야 납득이 됨 */}
                 {m.yarn.committedM > 0 && (
                   <p className="mt-1 text-[11px] text-muted">
-                    쓸 수 있는 양 {Math.round(m.yarn.availableM)}m (보유 {Math.round(m.yarn.totalM)}m 중)
+                    {t("pattern:detail.availableOfTotal", {
+                      available: Math.round(m.yarn.availableM),
+                      total: Math.round(m.yarn.totalM),
+                    })}
                   </p>
                 )}
-                {m.needsLotMixing && <p className="mt-1 text-xs text-warn">로트를 섞어야 해요</p>}
+                {m.needsLotMixing && <p className="mt-1 text-xs text-warn">{t("pattern:detail.needsLotMixing")}</p>}
               </button>
             ))}
           </div>
@@ -201,10 +202,10 @@ export function PatternDetailPage() {
 
       {confirmingDelete && (
         <ConfirmModal
-          title="도안을 삭제할까요?"
-          description="삭제하면 되돌릴 수 없어요"
+          title={t("pattern:detail.deleteConfirmTitle")}
+          description={t("pattern:detail.deleteConfirmDesc")}
           danger
-          confirmLabel="삭제"
+          confirmLabel={t("common:action.delete")}
           onConfirm={handleDelete}
           onCancel={() => setConfirmingDelete(false)}
         />

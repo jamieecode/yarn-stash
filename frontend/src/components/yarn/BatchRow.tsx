@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useRemoveBatchMutation, useUpdateBatchMutation } from "../../api/useYarns";
 import { displayLength, displayWeight } from "../../lib/units";
 import { ConfirmModal } from "../ui/ConfirmModal";
@@ -7,6 +8,7 @@ import type { YarnBatch } from "../../types/api";
 
 // 화면설계서 3번 "배치 카드 탭 시 인라인 수정 모드" - 배치별 로트/수량/무게/길이 인라인 수정 + 삭제
 export function BatchRow({ yarnId, batch }: { yarnId: string; batch: YarnBatch }) {
+  const { t, i18n } = useTranslation(["yarn", "common"]);
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const updateBatch = useUpdateBatchMutation(yarnId);
@@ -46,28 +48,28 @@ export function BatchRow({ yarnId, batch }: { yarnId: string; batch: YarnBatch }
           <input
             value={dyeLot}
             onChange={(e) => setDyeLot(e.target.value)}
-            placeholder="염색로트 (선택)"
+            placeholder={t("yarn:batch.dyeLotPlaceholder")}
             className="col-span-2 rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
           />
           <input
             value={skeinCount}
             onChange={(e) => setSkeinCount(e.target.value)}
             type="number"
-            placeholder="타래 수"
+            placeholder={t("yarn:batch.skeinCountPlaceholder")}
             className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
           />
           <input
             value={weightPerSkein}
             onChange={(e) => setWeightPerSkein(e.target.value)}
             type="number"
-            placeholder={`타래당 무게 (${dispWeight.label})`}
+            placeholder={t("yarn:batch.weightPlaceholder", { unit: dispWeight.label })}
             className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
           />
           <input
             value={lengthPerSkein}
             onChange={(e) => setLengthPerSkein(e.target.value)}
             type="number"
-            placeholder={`타래당 길이 (${dispLength.label})`}
+            placeholder={t("yarn:batch.lengthPlaceholder", { unit: dispLength.label })}
             className="col-span-2 rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
           />
         </div>
@@ -76,14 +78,14 @@ export function BatchRow({ yarnId, batch }: { yarnId: string; batch: YarnBatch }
             onClick={() => setEditing(false)}
             className="flex-1 cursor-pointer rounded-lg border border-border bg-card py-2 text-sm font-medium text-text"
           >
-            취소
+            {t("common:action.cancel")}
           </button>
           <button
             onClick={handleSave}
             disabled={updateBatch.isPending}
             className="flex-1 cursor-pointer rounded-lg border-none bg-accent py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
-            저장
+            {t("common:action.confirm")}
           </button>
         </div>
       </div>
@@ -93,26 +95,30 @@ export function BatchRow({ yarnId, batch }: { yarnId: string; batch: YarnBatch }
   return (
     <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3">
       <button type="button" onClick={() => setEditing(true)} className="flex-1 cursor-pointer text-left">
-        <div className="text-sm font-semibold text-text">{batch.dyeLot ?? "로트 구분 없음"}</div>
+        <div className="text-sm font-semibold text-text">{batch.dyeLot ?? t("yarn:batch.noLot")}</div>
         <div className="mt-0.5 text-xs text-muted">
-          {batch.skeinCount}타래 · 타래당 {dispWeight.value}{dispWeight.label} · {dispLength.value}{dispLength.label}
-          {batch.purchasedAt && ` · ${new Date(batch.purchasedAt).toLocaleDateString()}`}
+          {t("yarn:batch.summary", {
+            count: batch.skeinCount,
+            weight: `${dispWeight.value}${dispWeight.label}`,
+            length: `${dispLength.value}${dispLength.label}`,
+          })}
+          {batch.purchasedAt && ` · ${new Date(batch.purchasedAt).toLocaleDateString(i18n.language)}`}
         </div>
       </button>
       <button
         type="button"
         onClick={() => setConfirmingDelete(true)}
-        aria-label="배치 삭제"
+        aria-label={t("yarn:batch.deleteAria")}
         className="cursor-pointer border-none bg-transparent p-1.5 text-muted"
       >
         <Trash2 size={16} />
       </button>
       {confirmingDelete && (
         <ConfirmModal
-          title="이 배치를 삭제할까요?"
-          description="삭제하면 되돌릴 수 없어요"
+          title={t("yarn:batch.deleteConfirmTitle")}
+          description={t("yarn:batch.deleteConfirmDesc")}
           danger
-          confirmLabel="삭제"
+          confirmLabel={t("common:action.delete")}
           onConfirm={handleDelete}
           onCancel={() => setConfirmingDelete(false)}
         />

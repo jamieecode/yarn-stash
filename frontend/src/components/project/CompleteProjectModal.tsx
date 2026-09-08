@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Project } from "../../types/api";
 
 // 프로젝트를 완료할 때 "실제로 얼마나 썼는지"를 확정받는 모달.
@@ -13,6 +14,7 @@ export function CompleteProjectModal({
   onConfirm: (usages: { yarnId: string; usedM: number }[]) => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation(["project", "common"]);
   const pending = project.yarnUsages.filter((u) => u.usedM == null);
   const [values, setValues] = useState<Record<string, string>>(
     Object.fromEntries(pending.map((u) => [u.yarnId, String(u.reservedM)])),
@@ -28,8 +30,8 @@ export function CompleteProjectModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6" onClick={onCancel}>
       <div className="w-full max-w-xs rounded-2xl bg-card p-5 shadow-lg" onClick={(e) => e.stopPropagation()}>
-        <p className="text-sm font-semibold text-text">완성을 축하해요!</p>
-        <p className="mt-2 text-xs text-muted">실을 실제로 얼마나 썼는지 확정하면 재고에 반영돼요</p>
+        <p className="text-sm font-semibold text-text">{t("project:completeModal.title")}</p>
+        <p className="mt-2 text-xs text-muted">{t("project:completeModal.description")}</p>
 
         <div className="mt-4 flex flex-col gap-2.5">
           {pending.map((usage) => (
@@ -47,7 +49,12 @@ export function CompleteProjectModal({
                 />
                 <span className="text-xs text-muted">m</span>
               </div>
-              <p className="mt-1 text-[11px] text-sub">보유 {Math.round(usage.yarn.totalM)}m · 예약 {Math.round(usage.reservedM)}m</p>
+              <p className="mt-1 text-[11px] text-sub">
+                {t("project:completeModal.summary", {
+                  total: Math.round(usage.yarn.totalM),
+                  reserved: Math.round(usage.reservedM),
+                })}
+              </p>
             </div>
           ))}
         </div>
@@ -57,13 +64,13 @@ export function CompleteProjectModal({
             onClick={onCancel}
             className="flex-1 cursor-pointer rounded-lg border border-border bg-card py-2.5 text-sm font-medium text-text"
           >
-            취소
+            {t("common:action.cancel")}
           </button>
           <button
             onClick={handleConfirm}
             className="flex-1 cursor-pointer rounded-lg border-none bg-accent py-2.5 text-sm font-semibold text-white"
           >
-            완료하기
+            {t("project:completeModal.submit")}
           </button>
         </div>
       </div>

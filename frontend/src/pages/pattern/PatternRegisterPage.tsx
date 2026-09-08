@@ -1,23 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { TopBar } from "../../components/layout/TopBar";
 import { PatternSearchAutocomplete } from "../../components/pattern/PatternSearchAutocomplete";
 import { YarnCatalogAutocomplete } from "../../components/yarn/YarnCatalogAutocomplete";
 import { useCreatePatternMutation, useRavelryPatternDetailQuery } from "../../api/usePatterns";
 import { useAuth } from "../../auth/AuthContext";
 import {
-  CRAFT_TYPE_LABEL,
   CRAFT_TYPE_ORDER,
-  WEIGHT_CATEGORY_LABEL,
   WEIGHT_CATEGORY_ORDER,
   type CraftType,
   type PatternSource,
   type UnitSystem,
   type WeightCategory,
 } from "../../types/api";
+import { craftTypeLabel, weightCategoryLabel } from "../../lib/enumLabels";
 
 // 화면설계서 5번(도안 등록)
 export function PatternRegisterPage() {
+  const { t } = useTranslation(["pattern", "enums"]);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialRavelryId = searchParams.get("ravelryId");
@@ -112,7 +113,7 @@ export function PatternRegisterPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar title="도안 등록" />
+      <TopBar title={t("pattern:register.title")} />
       <div className="flex-1 overflow-y-auto p-4 pb-28">
         {!initialRavelryId && (
           <section>
@@ -124,51 +125,51 @@ export function PatternRegisterPage() {
             />
           </section>
         )}
-        {autoFilledFromRavelry && <p className="mt-1.5 text-xs text-sub">Ravelry에서 자동 입력됨</p>}
+        {autoFilledFromRavelry && <p className="mt-1.5 text-xs text-sub">{t("pattern:register.autoFilledFromRavelry")}</p>}
 
         {isGuest ? (
           <div className="mt-6 rounded-xl border border-border bg-card p-4 text-center">
-            <p className="text-sm text-text">도안 등록은 로그인 후 이용할 수 있어요</p>
+            <p className="text-sm text-text">{t("pattern:register.guestNotice")}</p>
             <button
               onClick={() => navigate("/my")}
               className="mt-3 cursor-pointer rounded-lg border-none bg-accent px-4 py-2 text-sm font-semibold text-white"
             >
-              로그인하러 가기
+              {t("pattern:register.guestLoginCta")}
             </button>
           </div>
         ) : (
           <>
             <section className="mt-5 flex flex-col gap-2">
-              <TextField label="도안명" value={name} onChange={setName} />
-              <TextField label="작가 (선택)" value={designer} onChange={setDesigner} />
+              <TextField label={t("pattern:register.nameLabel")} value={name} onChange={setName} />
+              <TextField label={t("pattern:register.designerLabel")} value={designer} onChange={setDesigner} />
 
               <div>
-                <label className="mb-1 block text-xs font-semibold text-muted">뜨개 방법</label>
+                <label className="mb-1 block text-xs font-semibold text-muted">{t("pattern:register.craftTypeLabel")}</label>
                 <select
                   value={craftType}
                   onChange={(e) => setCraftType(e.target.value as CraftType | "")}
                   className="w-full rounded-lg border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-accent"
                 >
-                  <option value="">선택해주세요</option>
+                  <option value="">{t("pattern:register.selectPlaceholder")}</option>
                   {CRAFT_TYPE_ORDER.map((c) => (
                     <option key={c} value={c}>
-                      {CRAFT_TYPE_LABEL[c]}
+                      {craftTypeLabel(t, c)}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-semibold text-muted">굵기</label>
+                <label className="mb-1 block text-xs font-semibold text-muted">{t("pattern:register.weightLabel")}</label>
                 <select
                   value={weightCategory}
                   onChange={(e) => setWeightCategory(e.target.value as WeightCategory | "")}
                   className="w-full rounded-lg border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-accent"
                 >
-                  <option value="">선택해주세요</option>
+                  <option value="">{t("pattern:register.selectPlaceholder")}</option>
                   {WEIGHT_CATEGORY_ORDER.map((w) => (
                     <option key={w} value={w}>
-                      {WEIGHT_CATEGORY_LABEL[w]}
+                      {weightCategoryLabel(t, w)}
                     </option>
                   ))}
                 </select>
@@ -176,7 +177,7 @@ export function PatternRegisterPage() {
 
               <div>
                 <div className="mb-1 flex items-center justify-between">
-                  <label className="text-xs font-semibold text-muted">필요량</label>
+                  <label className="text-xs font-semibold text-muted">{t("pattern:register.requiredLabel")}</label>
                   <div className="flex overflow-hidden rounded-lg border border-border text-xs">
                     <button onClick={() => setRequiredUnit("METRIC")} className={`cursor-pointer border-none px-2.5 py-1 ${requiredUnit === "METRIC" ? "bg-accent text-white" : "bg-card text-muted"}`}>
                       m
@@ -192,7 +193,7 @@ export function PatternRegisterPage() {
                     onChange={(e) => setRequiredMin(e.target.value)}
                     type="number"
                     min={0}
-                    placeholder="최소값"
+                    placeholder={t("pattern:register.requiredMinPlaceholder")}
                     className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
                   <input
@@ -200,23 +201,23 @@ export function PatternRegisterPage() {
                     onChange={(e) => setRequiredMax(e.target.value)}
                     type="number"
                     min={0}
-                    placeholder="최대값 (선택)"
+                    placeholder={t("pattern:register.requiredMaxPlaceholder")}
                     className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
                 </div>
                 {requiredMin.trim().length > 0 && !requiredMinValid && (
-                  <p className="mt-1.5 text-xs text-danger">최소값은 0보다 커야 해요</p>
+                  <p className="mt-1.5 text-xs text-danger">{t("pattern:register.requiredMinError")}</p>
                 )}
                 {requiredMinValid && !requiredMaxValid && (
-                  <p className="mt-1.5 text-xs text-danger">최대값은 최소값보다 크거나 같아야 해요</p>
+                  <p className="mt-1.5 text-xs text-danger">{t("pattern:register.requiredMaxError")}</p>
                 )}
               </div>
 
-              <TextField label="게이지 (콧수/10cm, 선택)" value={gaugeStitches} onChange={setGaugeStitches} type="number" min={0} />
-              <TextField label="참고 링크 (선택)" value={sourceUrl} onChange={setSourceUrl} />
+              <TextField label={t("pattern:register.gaugeLabel")} value={gaugeStitches} onChange={setGaugeStitches} type="number" min={0} />
+              <TextField label={t("pattern:register.sourceUrlLabel")} value={sourceUrl} onChange={setSourceUrl} />
 
               <div>
-                <label className="mb-1 block text-xs font-semibold text-muted">원본 실 (선택)</label>
+                <label className="mb-1 block text-xs font-semibold text-muted">{t("pattern:register.originalYarnLabel")}</label>
                 <YarnCatalogAutocomplete
                   query={yarnQuery}
                   onQueryChange={(q) => {
@@ -244,7 +245,7 @@ export function PatternRegisterPage() {
             disabled={!canSubmit || createPattern.isPending}
             className="w-full cursor-pointer rounded-xl border-none bg-accent py-3 text-sm font-semibold text-white disabled:opacity-50"
           >
-            {createPattern.isPending ? "등록 중..." : "등록하기"}
+            {createPattern.isPending ? t("pattern:register.submitting") : t("pattern:register.submit")}
           </button>
         </div>
       )}

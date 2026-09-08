@@ -1,0 +1,27 @@
+{
+  "tab": {
+    "home": "Home",
+    "yarn": "Yarn",
+    "pattern": "Patterns",
+    "project": "Projects",
+    "my": "My"
+  },
+  "action": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "add": "Add",
+    "back": "Back"
+  },
+  "loading": "Loading...",
+  "photoUploader": {
+    "deletePhoto": "Delete photo",
+    "uploading": "Uploading",
+    "addPhoto": "Add photo"
+  },
+  "error": {
+    "requestFailed": "Request failed ({{status}})",
+    "photoUploadFailed": "Photo upload failed",
+    "cloudinaryNotConfigured": "Cloudinary isn't configured yet (fill in the VITE_CLOUDINARY_* values in .env)"
+  }
+}

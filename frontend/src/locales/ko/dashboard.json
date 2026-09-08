@@ -1,0 +1,28 @@
+{
+  "home": {
+    "headerNickname": "{{nickname}}님의 스태시",
+    "headerDefault": "내 스태시",
+    "emptyMessage": "갖고 있는 실을 등록하면 그 실로 뜰 수 있는 도안을 찾아드려요",
+    "emptyCta": "실 등록하기",
+    "summaryTitle": "지금 쓸 수 있는 실",
+    "summaryTotalOwned": "총 보유 {{meters}}m",
+    "summaryYarnAndSkeins": "실 {{count}}개 · {{skeins}}타래",
+    "summaryCommittedShare": "프로젝트에 {{percent}}% 사용 중",
+    "readyHeading": "지금 바로 뜰 수 있는 도안",
+    "readyEmpty": "지금 가진 실만으로 넉넉하게 뜰 수 있는 도안이 아직 없어요. 도안을 더 등록해보세요",
+    "readyCount_one": "실 하나로 필요량이 채워지는 도안 {{count}}개",
+    "readyCount_other": "실 하나로 필요량이 채워지는 도안 {{count}}개",
+    "readyRequiredMeters": "{{meters}}m 필요",
+    "projectsHeading": "프로젝트",
+    "tileBookmarked": "찜한 도안"
+  },
+  "distribution": {
+    "heading": "굵기별 보유량",
+    "categoryCount_one": "{{count}}종",
+    "categoryCount_other": "{{count}}종",
+    "legendAvailable": "쓸 수 있음",
+    "legendCommitted": "프로젝트 사용 중",
+    "yarnCount_one": "{{count}}개",
+    "yarnCount_other": "{{count}}개"
+  }
+}

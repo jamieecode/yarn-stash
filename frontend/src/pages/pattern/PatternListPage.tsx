@@ -1,16 +1,19 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { usePatternSearchQuery, usePatternsQuery } from "../../api/usePatterns";
 import { PatternCard } from "../../components/pattern/PatternCard";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
-import { CRAFT_TYPE_LABEL, CRAFT_TYPE_ORDER, type CraftType } from "../../types/api";
+import { CRAFT_TYPE_ORDER, type CraftType } from "../../types/api";
+import { craftTypeLabel } from "../../lib/enumLabels";
 
 type BookmarkFilter = "ALL" | "BOOKMARKED";
 
 // 화면설계서 4번(도안 목록)
 export function PatternListPage() {
+  const { t } = useTranslation(["pattern", "enums", "common"]);
   const navigate = useNavigate();
   const [filter, setFilter] = useState<BookmarkFilter>("ALL");
   const [craftFilter, setCraftFilter] = useState<CraftType | "ALL">("ALL");
@@ -35,10 +38,10 @@ export function PatternListPage() {
   return (
     <div>
       <div className="flex items-center justify-between px-4 pt-4">
-        <h1 className="text-lg font-bold text-text">도안</h1>
+        <h1 className="text-lg font-bold text-text">{t("pattern:list.title")}</h1>
         <button
           onClick={() => navigate("/patterns/new")}
-          aria-label="도안 등록"
+          aria-label={t("pattern:list.registerAria")}
           className="flex cursor-pointer items-center justify-center rounded-full border-none bg-accent p-2 text-white"
         >
           <Plus size={18} />
@@ -46,14 +49,14 @@ export function PatternListPage() {
       </div>
 
       <div className="mt-3 flex gap-1.5 px-4">
-        <FilterChip active={filter === "ALL"} onClick={() => setFilter("ALL")} label="전체" />
-        <FilterChip active={filter === "BOOKMARKED"} onClick={() => setFilter("BOOKMARKED")} label="찜함" />
+        <FilterChip active={filter === "ALL"} onClick={() => setFilter("ALL")} label={t("pattern:list.filterAll")} />
+        <FilterChip active={filter === "BOOKMARKED"} onClick={() => setFilter("BOOKMARKED")} label={t("pattern:list.filterBookmarked")} />
       </div>
 
       <div className="mt-2 flex gap-1.5 overflow-x-auto px-4 pb-1">
-        <FilterChip active={craftFilter === "ALL"} onClick={() => setCraftFilter("ALL")} label="전체" />
+        <FilterChip active={craftFilter === "ALL"} onClick={() => setCraftFilter("ALL")} label={t("pattern:list.filterAll")} />
         {CRAFT_TYPE_ORDER.map((c) => (
-          <FilterChip key={c} active={craftFilter === c} onClick={() => setCraftFilter(c)} label={CRAFT_TYPE_LABEL[c]} />
+          <FilterChip key={c} active={craftFilter === c} onClick={() => setCraftFilter(c)} label={craftTypeLabel(t, c)} />
         ))}
       </div>
 
@@ -61,15 +64,15 @@ export function PatternListPage() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="도안명·작가로 검색"
+          placeholder={t("pattern:list.searchPlaceholder")}
           className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-accent"
         />
       </div>
 
       <div className="p-4">
         {isSearching
-          ? searchQuery.isLoading && <p className="py-10 text-center text-sm text-muted">검색 중...</p>
-          : listQuery.isLoading && <p className="py-10 text-center text-sm text-muted">불러오는 중...</p>}
+          ? searchQuery.isLoading && <p className="py-10 text-center text-sm text-muted">{t("pattern:list.searching")}</p>
+          : listQuery.isLoading && <p className="py-10 text-center text-sm text-muted">{t("common:loading")}</p>}
 
         {!isEmpty && (
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
@@ -84,7 +87,7 @@ export function PatternListPage() {
                       className="cursor-pointer rounded-xl border border-border bg-card p-3 text-left"
                     >
                       <div className="text-sm font-semibold text-text">{r.name}</div>
-                      <div className="mt-0.5 text-xs text-muted">{r.designer ?? "작가 미상"} · Ravelry</div>
+                      <div className="mt-0.5 text-xs text-muted">{r.designer ?? t("pattern:list.designerUnknown")} · Ravelry</div>
                     </button>
                   ),
                 )
@@ -103,10 +106,10 @@ export function PatternListPage() {
           <EmptyState
             message={
               isSearching
-                ? "일치하는 도안이 없어요"
+                ? t("pattern:list.emptySearch")
                 : filter === "BOOKMARKED"
-                  ? "아직 찜한 도안이 없어요"
-                  : "아직 등록된 도안이 없어요"
+                  ? t("pattern:list.emptyBookmarked")
+                  : t("pattern:list.emptyDefault")
             }
             action={
               isSearching ? (
@@ -114,7 +117,7 @@ export function PatternListPage() {
                   onClick={() => navigate("/patterns/new")}
                   className="cursor-pointer rounded-lg border-none bg-accent px-4 py-2 text-sm font-semibold text-white"
                 >
-                  등록하기
+                  {t("pattern:list.emptyCta")}
                 </button>
               ) : undefined
             }

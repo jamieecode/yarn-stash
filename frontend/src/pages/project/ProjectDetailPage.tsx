@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { TopBar } from "../../components/layout/TopBar";
 import { PhotoUploader } from "../../components/ui/PhotoUploader";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { ProjectYarnList } from "../../components/project/ProjectYarnList";
 import { CompleteProjectModal } from "../../components/project/CompleteProjectModal";
 import { useDeleteProjectMutation, useProjectQuery, useUpdateProjectMutation } from "../../api/useProjects";
-import { PROJECT_STATUS_LABEL, PROJECT_STATUS_ORDER, type PhotoInput, type ProjectStatus } from "../../types/api";
+import { PROJECT_STATUS_ORDER, type PhotoInput, type ProjectStatus } from "../../types/api";
+import { projectStatusLabel } from "../../lib/enumLabels";
 
 // 화면설계서 7-1(프로젝트 상세)
 export function ProjectDetailPage() {
+  const { t } = useTranslation(["project", "enums", "common"]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: project } = useProjectQuery(id);
@@ -29,8 +32,8 @@ export function ProjectDetailPage() {
   if (!project) {
     return (
       <div className="flex flex-1 flex-col">
-        <TopBar title="프로젝트 상세" />
-        <p className="p-6 text-center text-sm text-muted">불러오는 중...</p>
+        <TopBar title={t("project:detail.title")} />
+        <p className="p-6 text-center text-sm text-muted">{t("common:loading")}</p>
       </div>
     );
   }
@@ -74,7 +77,7 @@ export function ProjectDetailPage() {
       <TopBar
         title={project.pattern.name}
         right={
-          <button onClick={() => setConfirmingDelete(true)} aria-label="삭제" className="cursor-pointer border-none bg-transparent p-1 text-danger">
+          <button onClick={() => setConfirmingDelete(true)} aria-label={t("project:detail.deleteAria")} className="cursor-pointer border-none bg-transparent p-1 text-danger">
             <Trash2 size={18} />
           </button>
         }
@@ -92,13 +95,13 @@ export function ProjectDetailPage() {
                 project.status === s ? "border-accent bg-accent-soft text-accent" : "border-border bg-card text-muted"
               }`}
             >
-              {PROJECT_STATUS_LABEL[s]}
+              {projectStatusLabel(t, s)}
             </button>
           ))}
         </div>
         {project.status === "COMPLETED" && (
           <p className="mt-2 text-xs text-sub">
-            완료를 축하해요! 사용한 만큼 재고에 반영됐어요
+            {t("project:detail.completedNote")}
           </p>
         )}
 
@@ -119,17 +122,17 @@ export function ProjectDetailPage() {
             </button>
           </div>
           <button onClick={() => setConfirmingReset(true)} className="cursor-pointer border-none bg-transparent text-xs text-muted underline">
-            초기화
+            {t("project:detail.reset")}
           </button>
         </div>
 
         <section className="mt-6">
-          <label className="mb-1.5 block text-xs font-semibold text-muted">진행 사진</label>
+          <label className="mb-1.5 block text-xs font-semibold text-muted">{t("project:detail.photoLabel")}</label>
           <PhotoUploader photos={project.photos.map((p) => ({ url: p.url, publicId: p.publicId ?? undefined }))} onChange={handlePhotosChange} />
         </section>
 
         <section className="mt-4">
-          <label className="mb-1.5 block text-xs font-semibold text-muted">메모</label>
+          <label className="mb-1.5 block text-xs font-semibold text-muted">{t("project:detail.memoLabel")}</label>
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
@@ -142,18 +145,18 @@ export function ProjectDetailPage() {
 
       {confirmingDelete && (
         <ConfirmModal
-          title="프로젝트를 삭제할까요?"
-          description="삭제하면 되돌릴 수 없어요"
+          title={t("project:detail.deleteConfirmTitle")}
+          description={t("project:detail.deleteConfirmDesc")}
           danger
-          confirmLabel="삭제"
+          confirmLabel={t("common:action.delete")}
           onConfirm={handleDelete}
           onCancel={() => setConfirmingDelete(false)}
         />
       )}
       {confirmingReset && (
         <ConfirmModal
-          title="단수를 0으로 초기화할까요?"
-          confirmLabel="초기화"
+          title={t("project:detail.resetConfirmTitle")}
+          confirmLabel={t("project:detail.reset")}
           danger
           onConfirm={handleReset}
           onCancel={() => setConfirmingReset(false)}

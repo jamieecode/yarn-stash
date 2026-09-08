@@ -20,6 +20,7 @@ A personal inventory app for knitters and crocheters. Register the yarn you own 
 - **Project tracker**: Once a project is started from a pattern, track it with a row counter, progress photos, and status (in progress / completed / on hold).
 - **Home dashboard**: One screen showing how many meters of yarn are actually available right now, how the stash breaks down by weight category, and how many patterns can be started immediately with what is on hand.
 - **Automatic stash deduction**: Linking yarn to a project reserves that amount, so it drops out of other patterns' matches. Completing the project confirms the actual amount used. Deleting the project or unlinking the yarn restores the stash — so yarn you have already used up never keeps showing as "sufficient".
+- **Multilingual UI**: Switch between Korean and English from the My tab; the choice is saved on the device and persists across visits.
 
 Background on the feature set and data model is in [`docs/실_스태시_트래커_기획서.md`](docs/실_스태시_트래커_기획서.md) (Korean), and per-screen specs are in [`docs/실_스태시_트래커_화면설계서.md`](docs/실_스태시_트래커_화면설계서.md) (Korean).
 
@@ -27,7 +28,7 @@ Background on the feature set and data model is in [`docs/실_스태시_트래�
 
 | Area | Stack |
 |---|---|
-| Frontend | React 19, Vite, TypeScript, React Router, TanStack Query, Tailwind CSS |
+| Frontend | React 19, Vite, TypeScript, React Router, TanStack Query, Tailwind CSS, react-i18next |
 | Backend | Nest.js, Prisma, PostgreSQL |
 | Auth | JWT (localStorage) + Kakao/Google OAuth |
 | Images | Cloudinary (direct client-side upload) |

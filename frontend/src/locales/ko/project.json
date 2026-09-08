@@ -1,0 +1,40 @@
+{
+  "list": {
+    "title": "프로젝트",
+    "filterAll": "전체",
+    "emptyMessage": "아직 시작한 프로젝트가 없어요, 도안 탭에서 마음에 드는 도안을 찾아 시작해보세요",
+    "yarnUnlinked": "실 미연결",
+    "yarnMoreCount": "{{name}} 외 {{count}}개",
+    "rowCount_one": "{{count}}단",
+    "rowCount_other": "{{count}}단"
+  },
+  "detail": {
+    "title": "프로젝트 상세",
+    "deleteAria": "삭제",
+    "completedNote": "완료를 축하해요! 사용한 만큼 재고에 반영됐어요",
+    "reset": "초기화",
+    "photoLabel": "진행 사진",
+    "memoLabel": "메모",
+    "deleteConfirmTitle": "프로젝트를 삭제할까요?",
+    "deleteConfirmDesc": "삭제하면 되돌릴 수 없어요",
+    "resetConfirmTitle": "단수를 0으로 초기화할까요?"
+  },
+  "completeModal": {
+    "title": "완성을 축하해요!",
+    "description": "실을 실제로 얼마나 썼는지 확정하면 재고에 반영돼요",
+    "summary": "보유 {{total}}m · 예약 {{reserved}}m",
+    "submit": "완료하기"
+  },
+  "yarnList": {
+    "heading": "사용하는 실",
+    "linkAction": "실 연결",
+    "emptyNotice": "아직 연결한 실이 없어요. 연결하면 그만큼 재고에서 빠져요",
+    "noCandidates": "연결할 수 있는 실이 없어요",
+    "colorUnspecified": "색상 미입력",
+    "colorAndOwned": "{{color}} · 보유 {{meters}}m",
+    "removeAria": "연결 해제",
+    "reserved": "예약",
+    "usedConfirmed": "사용 확정",
+    "overReserved": "보유량보다 많이 잡았어요 (여유 {{ceiling}}m)"
+  }
+}

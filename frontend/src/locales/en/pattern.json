@@ -1,0 +1,89 @@
+{
+  "list": {
+    "title": "Patterns",
+    "registerAria": "Register pattern",
+    "filterAll": "All",
+    "filterBookmarked": "Bookmarked",
+    "searchPlaceholder": "Search by pattern name or designer",
+    "searching": "Searching...",
+    "designerUnknown": "Unknown designer",
+    "emptySearch": "No patterns match",
+    "emptyBookmarked": "No bookmarked patterns yet",
+    "emptyDefault": "No patterns registered yet",
+    "emptyCta": "Register"
+  },
+  "card": {
+    "sourceLink": "From a link",
+    "sourceUser": "Manually added",
+    "bookmarkAdd": "Bookmark",
+    "bookmarkRemove": "Remove bookmark",
+    "requiredRange": "{{min}}–{{max}}m",
+    "requiredMin": "{{min}}m"
+  },
+  "searchAutocomplete": {
+    "placeholder": "Search by pattern name or designer",
+    "resolvingRavelry": "Loading from Ravelry...",
+    "designerUnknown": "Unknown designer",
+    "myDb": "My library"
+  },
+  "detail": {
+    "title": "Pattern detail",
+    "bookmarkAria": "Bookmark",
+    "editAria": "Edit",
+    "deleteAria": "Delete",
+    "sourceMyDb": "My library",
+    "deleteReason": {
+      "NOT_OWNER": "Only the person who registered this can delete it",
+      "BOOKMARKED_BY_OTHERS": "This can't be deleted because others have bookmarked it",
+      "HAS_PROJECT": "This can't be deleted because a project is in progress with it"
+    },
+    "originalYarnLabel": "Original yarn: {{name}}",
+    "originalLinkLabel": "View original link",
+    "memoLabel": "My notes",
+    "memoPlaceholder": "e.g. \"switch to 5.5mm\"",
+    "startProject": "Start this pattern",
+    "matchingYarnHeading": "Your yarn that works for this",
+    "matchesEmpty": "No yarn at the same weight",
+    "availableOfTotal": "Available {{available}}m (of {{total}}m owned)",
+    "needsLotMixing": "You'll need to mix dye lots",
+    "deleteConfirmTitle": "Delete this pattern?",
+    "deleteConfirmDesc": "This can't be undone"
+  },
+  "register": {
+    "title": "Register pattern",
+    "autoFilledFromRavelry": "Auto-filled from Ravelry",
+    "guestNotice": "Log in to register patterns",
+    "guestLoginCta": "Go to login",
+    "nameLabel": "Pattern name",
+    "designerLabel": "Designer (optional)",
+    "craftTypeLabel": "Craft type",
+    "selectPlaceholder": "Please select",
+    "weightLabel": "Weight",
+    "requiredLabel": "Yardage needed",
+    "requiredMinPlaceholder": "Minimum",
+    "requiredMaxPlaceholder": "Maximum (optional)",
+    "requiredMinError": "Minimum must be greater than 0",
+    "requiredMaxError": "Maximum must be greater than or equal to the minimum",
+    "gaugeLabel": "Gauge (stitches/10cm, optional)",
+    "sourceUrlLabel": "Reference link (optional)",
+    "originalYarnLabel": "Original yarn (optional)",
+    "submitting": "Registering...",
+    "submit": "Register"
+  },
+  "edit": {
+    "title": "Edit pattern",
+    "saving": "Saving...",
+    "save": "Save"
+  },
+  "projectStart": {
+    "title": "Start project",
+    "requiredRange": "Needs {{min}}–{{max}}m",
+    "requiredMin": "Needs {{min}}m",
+    "yarnSelectHeading": "Choose yarn",
+    "laterOption": "Connect later",
+    "available": "Available {{available}}m",
+    "availableOfTotal": "Available {{available}}m (of {{total}}m owned)",
+    "starting": "Starting...",
+    "start": "Start"
+  }
+}

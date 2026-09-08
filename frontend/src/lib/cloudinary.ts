@@ -1,4 +1,5 @@
 import type { PhotoInput } from "../types/api";
+import i18n from "./i18n";
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string | undefined;
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string | undefined;
@@ -6,7 +7,7 @@ const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string | 
 // 기획서 2.8 - 클라이언트에서 Cloudinary로 직접 업로드(unsigned preset)하고 반환된 URL만 백엔드에 저장
 export async function uploadPhoto(file: File): Promise<PhotoInput> {
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
-    throw new Error("Cloudinary 설정이 아직 안 돼 있어요 (.env의 VITE_CLOUDINARY_* 값을 채워주세요)");
+    throw new Error(i18n.t("common:error.cloudinaryNotConfigured"));
   }
 
   const formData = new FormData();
@@ -18,7 +19,7 @@ export async function uploadPhoto(file: File): Promise<PhotoInput> {
     body: formData,
   });
   if (!res.ok) {
-    throw new Error("사진 업로드에 실패했어요");
+    throw new Error(i18n.t("common:error.photoUploadFailed"));
   }
   const data = (await res.json()) as { secure_url: string; public_id: string };
   return { url: data.secure_url, publicId: data.public_id };

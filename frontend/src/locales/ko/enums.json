@@ -1,0 +1,34 @@
+{
+  "weightCategory": {
+    "LACE": "레이스",
+    "FINGERING": "핑거링",
+    "SPORT": "스포츠",
+    "DK": "DK",
+    "WORSTED": "워스티드",
+    "ARAN": "아란",
+    "BULKY": "벌키",
+    "SUPER_BULKY": "슈퍼벌키",
+    "unspecified": "굵기 미지정",
+    "unentered": "굵기 미입력"
+  },
+  "craftType": {
+    "KNITTING": "대바늘",
+    "CROCHET": "코바늘",
+    "BOTH": "대바늘+코바늘"
+  },
+  "projectStatus": {
+    "IN_PROGRESS": "진행중",
+    "COMPLETED": "완료",
+    "ON_HOLD": "보류"
+  },
+  "yardage": {
+    "AMPLE": "여유로움",
+    "SUFFICIENT": "충분함",
+    "TIGHT": "빠듯함",
+    "INSUFFICIENT": "부족함"
+  },
+  "gaugeChip": {
+    "MATCH": "게이지 일치",
+    "DIFFERENT": "게이지 불일치"
+  }
+}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   useAddProjectYarnMutation,
   useRemoveProjectYarnMutation,
@@ -11,6 +12,7 @@ import type { Project } from "../../types/api";
 // 화면설계서 7-1(프로젝트 상세) - 이 프로젝트가 잡고 있는 실 목록.
 // 여기서 연결/해제하거나 예약량을 바꾸면 곧바로 실 재고의 가용량에 반영된다 (배치 자체는 건드리지 않음)
 export function ProjectYarnList({ project }: { project: Project }) {
+  const { t } = useTranslation(["project", "yarn"]);
   const [picking, setPicking] = useState(false);
   const addYarn = useAddProjectYarnMutation(project.id);
   const removeYarn = useRemoveProjectYarnMutation(project.id);
@@ -23,18 +25,18 @@ export function ProjectYarnList({ project }: { project: Project }) {
   return (
     <section>
       <div className="mb-1.5 flex items-center justify-between">
-        <label className="text-xs font-semibold text-muted">사용하는 실</label>
+        <label className="text-xs font-semibold text-muted">{t("project:yarnList.heading")}</label>
         <button
           onClick={() => setPicking((v) => !v)}
           className="flex cursor-pointer items-center gap-1 border-none bg-transparent text-xs font-semibold text-accent"
         >
-          <Plus size={13} /> 실 연결
+          <Plus size={13} /> {t("project:yarnList.linkAction")}
         </button>
       </div>
 
       {project.yarnUsages.length === 0 && !picking && (
         <p className="rounded-lg border border-dashed border-border px-3 py-2.5 text-xs text-muted">
-          아직 연결한 실이 없어요. 연결하면 그만큼 재고에서 빠져요
+          {t("project:yarnList.emptyNotice")}
         </p>
       )}
 
@@ -47,7 +49,7 @@ export function ProjectYarnList({ project }: { project: Project }) {
       {picking && (
         <div className="mt-2 flex flex-col gap-1.5">
           {candidates.length === 0 && (
-            <p className="text-xs text-muted">연결할 수 있는 실이 없어요</p>
+            <p className="text-xs text-muted">{t("project:yarnList.noCandidates")}</p>
           )}
           {candidates.map((m) => (
             <button
@@ -61,7 +63,9 @@ export function ProjectYarnList({ project }: { project: Project }) {
               <span>
                 {m.yarn.brand} {m.yarn.lineName}
               </span>
-              <span className="text-[11px] text-muted">{Math.round(m.yarn.availableM)}m 남음</span>
+              <span className="text-[11px] text-muted">
+                {t("yarn:card.availableMeters", { meters: Math.round(m.yarn.availableM) })}
+              </span>
             </button>
           ))}
         </div>
@@ -79,6 +83,7 @@ function UsageRow({
   usage: Project["yarnUsages"][number];
   onRemove: () => void;
 }) {
+  const { t } = useTranslation("project");
   const updateYarn = useUpdateProjectYarnMutation(projectId);
   const [reserved, setReserved] = useState(String(usage.reservedM));
 
@@ -103,16 +108,19 @@ function UsageRow({
             {usage.yarn.brand} {usage.yarn.lineName}
           </div>
           <div className="text-[11px] text-muted">
-            {usage.yarn.colorName ?? "색상 미입력"} · 보유 {Math.round(usage.yarn.totalM)}m
+            {t("yarnList.colorAndOwned", {
+              color: usage.yarn.colorName ?? t("yarnList.colorUnspecified"),
+              meters: Math.round(usage.yarn.totalM),
+            })}
           </div>
         </div>
-        <button onClick={onRemove} aria-label="연결 해제" className="cursor-pointer border-none bg-transparent p-0.5 text-muted">
+        <button onClick={onRemove} aria-label={t("yarnList.removeAria")} className="cursor-pointer border-none bg-transparent p-0.5 text-muted">
           <X size={15} />
         </button>
       </div>
 
       <div className="mt-2 flex items-center gap-1.5">
-        <span className="text-[11px] text-muted">{usage.usedM == null ? "예약" : "사용 확정"}</span>
+        <span className="text-[11px] text-muted">{usage.usedM == null ? t("yarnList.reserved") : t("yarnList.usedConfirmed")}</span>
         {usage.usedM == null ? (
           <>
             <input
@@ -132,7 +140,7 @@ function UsageRow({
 
       {overReserved && (
         <p className="mt-1.5 text-[11px] text-danger">
-          보유량보다 많이 잡았어요 (여유 {Math.round(ceiling)}m)
+          {t("yarnList.overReserved", { ceiling: Math.round(ceiling) })}
         </p>
       )}
     </div>

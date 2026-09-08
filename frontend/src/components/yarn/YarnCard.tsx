@@ -1,8 +1,10 @@
 import { Image as ImageIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { WeightBadge } from "../ui/WeightBadge";
 import type { Yarn } from "../../types/api";
 
 export function YarnCard({ yarn, onOpen }: { yarn: Yarn; onOpen: () => void }) {
+  const { t } = useTranslation("yarn");
   const totalSkeins = yarn.batches.reduce((sum, b) => sum + b.skeinCount, 0);
   // 프로젝트가 잡고 있는 양이 있으면 "쓸 수 있는 양"을 앞세운다 - 총 보유량만 보여주면 이미 예약된 실을 또 쓸 수 있다고 착각하게 됨
   const isCommitted = yarn.committedM > 0;
@@ -20,12 +22,12 @@ export function YarnCard({ yarn, onOpen }: { yarn: Yarn; onOpen: () => void }) {
         {cover && <img src={cover} alt="" className="h-full w-full object-cover" />}
         {yarn.consumed && (
           <span className="absolute left-1.5 top-1.5 rounded-full bg-black/70 px-2 py-0.5 text-[10px] text-white">
-            소진됨
+            {t("card.consumed")}
           </span>
         )}
         {lotCount > 1 && (
           <span className="absolute bottom-1.5 right-1.5 rounded-full bg-black/70 px-2 py-0.5 text-[10px] text-white">
-            로트 {lotCount}개
+            {t("card.lotCount", { count: lotCount })}
           </span>
         )}
         {photoCount > 1 && (
@@ -42,11 +44,16 @@ export function YarnCard({ yarn, onOpen }: { yarn: Yarn; onOpen: () => void }) {
         <div className="flex items-center justify-between">
           <WeightBadge weight={yarn.weightCategory} />
           <span className="text-[11px] text-muted">
-            {isCommitted ? `${Math.round(yarn.availableM)}m 남음` : `${Math.round(yarn.totalM)}m`} · {totalSkeins}타래
+            {isCommitted
+              ? t("card.availableMeters", { meters: Math.round(yarn.availableM) })
+              : t("card.totalMeters", { meters: Math.round(yarn.totalM) })}{" "}
+            · {t("card.skeinCount", { count: totalSkeins })}
           </span>
         </div>
         {isCommitted && (
-          <div className="mt-1 text-[10px] text-sub">프로젝트에 {Math.round(yarn.committedM)}m 사용 중</div>
+          <div className="mt-1 text-[10px] text-sub">
+            {t("card.committedNote", { meters: Math.round(yarn.committedM) })}
+          </div>
         )}
       </div>
     </button>

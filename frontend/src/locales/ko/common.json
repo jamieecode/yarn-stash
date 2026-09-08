@@ -1,0 +1,27 @@
+{
+  "tab": {
+    "home": "홈",
+    "yarn": "실",
+    "pattern": "도안",
+    "project": "프로젝트",
+    "my": "마이"
+  },
+  "action": {
+    "confirm": "확인",
+    "cancel": "취소",
+    "delete": "삭제",
+    "add": "추가",
+    "back": "뒤로가기"
+  },
+  "loading": "불러오는 중...",
+  "photoUploader": {
+    "deletePhoto": "사진 삭제",
+    "uploading": "업로드 중",
+    "addPhoto": "사진 추가"
+  },
+  "error": {
+    "requestFailed": "요청에 실패했어요 ({{status}})",
+    "photoUploadFailed": "사진 업로드에 실패했어요",
+    "cloudinaryNotConfigured": "Cloudinary 설정이 아직 안 돼 있어요 (.env의 VITE_CLOUDINARY_* 값을 채워주세요)"
+  }
+}

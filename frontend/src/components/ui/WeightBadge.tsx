@@ -1,14 +1,19 @@
-import { WEIGHT_CATEGORY_LABEL, type WeightCategory } from "../../types/api";
+import { useTranslation } from "react-i18next";
+import { type WeightCategory } from "../../types/api";
+import { weightCategoryLabel, weightCategoryUnspecifiedLabel } from "../../lib/enumLabels";
 
 export function WeightBadge({ weight }: { weight: WeightCategory | null | undefined }) {
+  const { t } = useTranslation("enums");
   if (!weight) {
     return (
-      <span className="rounded-full bg-border px-2.5 py-1 text-[11px] font-semibold text-muted">굵기 미지정</span>
+      <span className="rounded-full bg-border px-2.5 py-1 text-[11px] font-semibold text-muted">
+        {weightCategoryUnspecifiedLabel(t)}
+      </span>
     );
   }
   return (
     <span className="rounded-full bg-sub-soft px-2.5 py-1 text-[11px] font-semibold text-sub">
-      {WEIGHT_CATEGORY_LABEL[weight]}
+      {weightCategoryLabel(t, weight)}
     </span>
   );
 }

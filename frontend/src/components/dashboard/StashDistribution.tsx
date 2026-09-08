@@ -1,4 +1,6 @@
-import { WEIGHT_CATEGORY_LABEL, type DashboardSummary } from "../../types/api";
+import { useTranslation } from "react-i18next";
+import { type DashboardSummary } from "../../types/api";
+import { weightCategoryLabel, weightCategoryUnenteredLabel } from "../../lib/enumLabels";
 
 type Row = DashboardSummary["weightDistribution"][number];
 
@@ -6,6 +8,7 @@ type Row = DashboardSummary["weightDistribution"][number];
 // "총량 중 얼마가 아직 자유로운가"라는 부분-전체 관계라서, 범주형 2색으로 칠하면 관계가 오히려 흐려진다.
 // (앱 토큰의 accent+sub 조합은 색각 검증에서도 정상 시야 ΔE 14.4로 떨어져 범주형으로 쓸 수 없었음)
 export function StashDistribution({ rows }: { rows: Row[] }) {
+  const { t } = useTranslation("dashboard");
   if (rows.length === 0) return null;
 
   // 막대 길이는 카테고리 간 비교가 목적이므로 가장 큰 카테고리를 100%로 잡는다
@@ -15,19 +18,19 @@ export function StashDistribution({ rows }: { rows: Row[] }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-4">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold text-text">굵기별 보유량</h2>
-        <span className="text-[11px] text-muted">{rows.length}종</span>
+        <h2 className="text-sm font-semibold text-text">{t("distribution.heading")}</h2>
+        <span className="text-[11px] text-muted">{t("distribution.categoryCount", { count: rows.length })}</span>
       </div>
 
       {/* 세그먼트가 둘일 때만 범례를 단다 - 하나뿐이면 막대 옆 숫자가 곧 설명이라 범례가 잉여 */}
       {hasCommitted && (
         <div className="mt-2 flex items-center gap-3 text-[11px] text-muted">
           <span className="flex items-center gap-1">
-            <i className="h-2 w-2 rounded-full border border-accent bg-accent" aria-hidden /> 쓸 수 있음
+            <i className="h-2 w-2 rounded-full border border-accent bg-accent" aria-hidden /> {t("distribution.legendAvailable")}
           </span>
           {/* 연한 쪽은 흰 배경에서 거의 안 보여서 테두리로 형태를 잡아준다 */}
           <span className="flex items-center gap-1">
-            <i className="h-2 w-2 rounded-full border border-border bg-accent-soft" aria-hidden /> 프로젝트 사용 중
+            <i className="h-2 w-2 rounded-full border border-border bg-accent-soft" aria-hidden /> {t("distribution.legendCommitted")}
           </span>
         </div>
       )}
@@ -42,7 +45,8 @@ export function StashDistribution({ rows }: { rows: Row[] }) {
 }
 
 function DistributionRow({ row, maxTotal }: { row: Row; maxTotal: number }) {
-  const label = row.weightCategory ? WEIGHT_CATEGORY_LABEL[row.weightCategory] : "굵기 미입력";
+  const { t } = useTranslation(["dashboard", "enums"]);
+  const label = row.weightCategory ? weightCategoryLabel(t, row.weightCategory) : weightCategoryUnenteredLabel(t);
   const barWidth = maxTotal > 0 ? (row.totalM / maxTotal) * 100 : 0;
   const availableShare = row.totalM > 0 ? (row.availableM / row.totalM) * 100 : 0;
   const committedM = Math.round(row.totalM - row.availableM);
@@ -52,7 +56,7 @@ function DistributionRow({ row, maxTotal }: { row: Row; maxTotal: number }) {
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-xs text-text">
           {label}
-          <span className="ml-1 text-[11px] text-muted">{row.yarnCount}개</span>
+          <span className="ml-1 text-[11px] text-muted">{t("dashboard:distribution.yarnCount", { count: row.yarnCount })}</span>
         </span>
         {/* 모든 행에 값을 직접 붙인다 - 터치 화면이라 툴팁 뒤에 숫자를 숨기면 읽을 방법이 없음 */}
         <span className="shrink-0 text-[11px] text-muted">

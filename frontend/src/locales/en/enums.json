@@ -1,0 +1,34 @@
+{
+  "weightCategory": {
+    "LACE": "Lace",
+    "FINGERING": "Fingering",
+    "SPORT": "Sport",
+    "DK": "DK",
+    "WORSTED": "Worsted",
+    "ARAN": "Aran",
+    "BULKY": "Bulky",
+    "SUPER_BULKY": "Super Bulky",
+    "unspecified": "Weight not set",
+    "unentered": "Weight not entered"
+  },
+  "craftType": {
+    "KNITTING": "Knitting",
+    "CROCHET": "Crochet",
+    "BOTH": "Knitting + Crochet"
+  },
+  "projectStatus": {
+    "IN_PROGRESS": "In progress",
+    "COMPLETED": "Completed",
+    "ON_HOLD": "On hold"
+  },
+  "yardage": {
+    "AMPLE": "Plenty",
+    "SUFFICIENT": "Sufficient",
+    "TIGHT": "Tight",
+    "INSUFFICIENT": "Insufficient"
+  },
+  "gaugeChip": {
+    "MATCH": "Gauge match",
+    "DIFFERENT": "Gauge mismatch"
+  }
+}

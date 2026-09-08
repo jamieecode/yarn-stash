@@ -1,7 +1,10 @@
+import { useTranslation } from "react-i18next";
 import type { GaugeChip } from "../../types/api";
+import { gaugeChipLabel } from "../../lib/enumLabels";
 
 // 기획서 2.3 - 게이지 정보가 둘 다 있을 때만 보조 칩 표시 (하드 필터 아님)
 export function GaugeChipDisplay({ chip }: { chip: GaugeChip }) {
+  const { t } = useTranslation("enums");
   if (!chip) return null;
   return (
     <span
@@ -9,7 +12,7 @@ export function GaugeChipDisplay({ chip }: { chip: GaugeChip }) {
         chip === "MATCH" ? "bg-sub-soft text-sub" : "bg-warn-soft text-warn"
       }`}
     >
-      {chip === "MATCH" ? "게이지 일치" : "게이지 불일치"}
+      {gaugeChipLabel(t, chip)}
     </span>
   );
 }

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 interface ConfirmModalProps {
   title: string;
   description?: string;
@@ -12,12 +14,15 @@ interface ConfirmModalProps {
 export function ConfirmModal({
   title,
   description,
-  confirmLabel = "확인",
-  cancelLabel = "취소",
+  confirmLabel,
+  cancelLabel,
   danger = false,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const { t } = useTranslation("common");
+  const resolvedConfirmLabel = confirmLabel ?? t("action.confirm");
+  const resolvedCancelLabel = cancelLabel ?? t("action.cancel");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6" onClick={onCancel}>
       <div
@@ -31,7 +36,7 @@ export function ConfirmModal({
             onClick={onCancel}
             className="flex-1 cursor-pointer rounded-lg border border-border bg-card py-2.5 text-sm font-medium text-text"
           >
-            {cancelLabel}
+            {resolvedCancelLabel}
           </button>
           <button
             onClick={onConfirm}
@@ -39,7 +44,7 @@ export function ConfirmModal({
               danger ? "bg-danger" : "bg-accent"
             }`}
           >
-            {confirmLabel}
+            {resolvedConfirmLabel}
           </button>
         </div>
       </div>

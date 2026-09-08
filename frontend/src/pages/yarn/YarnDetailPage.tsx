@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { TopBar } from "../../components/layout/TopBar";
 import { WeightBadge } from "../../components/ui/WeightBadge";
 import { MatchTierChip } from "../../components/ui/MatchTierChip";
@@ -21,6 +22,7 @@ type Tab = "stash" | "matches";
 
 // 화면설계서 3번(실 상세)
 export function YarnDetailPage() {
+  const { t } = useTranslation(["yarn", "common"]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("stash");
@@ -37,11 +39,13 @@ export function YarnDetailPage() {
   if (isLoading || !yarn) {
     return (
       <div className="flex flex-1 flex-col">
-        <TopBar title="실 상세" />
-        <p className="p-6 text-center text-sm text-muted">불러오는 중...</p>
+        <TopBar title={t("yarn:detail.title")} />
+        <p className="p-6 text-center text-sm text-muted">{t("common:loading")}</p>
       </div>
     );
   }
+
+  const totalSkeinCount = yarn.batches.reduce((s, b) => s + b.skeinCount, 0);
 
   async function handleToggleConsumed() {
     await updateYarn.mutateAsync({ consumed: !yarn!.consumed });
@@ -58,10 +62,10 @@ export function YarnDetailPage() {
         title={`${yarn.brand} ${yarn.lineName ?? ""}`.trim()}
         right={
           <div className="flex gap-1">
-            <button onClick={() => navigate(`/yarns/${yarn.id}/edit`)} aria-label="수정" className="cursor-pointer border-none bg-transparent p-1 text-text">
+            <button onClick={() => navigate(`/yarns/${yarn.id}/edit`)} aria-label={t("yarn:detail.editAria")} className="cursor-pointer border-none bg-transparent p-1 text-text">
               <Pencil size={18} />
             </button>
-            <button onClick={() => setConfirmingDelete(true)} aria-label="삭제" className="cursor-pointer border-none bg-transparent p-1 text-danger">
+            <button onClick={() => setConfirmingDelete(true)} aria-label={t("yarn:detail.deleteAria")} className="cursor-pointer border-none bg-transparent p-1 text-danger">
               <Trash2 size={18} />
             </button>
           </div>
@@ -86,24 +90,30 @@ export function YarnDetailPage() {
 
         <label className="mt-3 flex items-center gap-2 text-sm text-text">
           <input type="checkbox" checked={yarn.consumed} onChange={handleToggleConsumed} />
-          다 썼어요 (소진 처리)
+          {t("yarn:detail.consumedToggle")}
         </label>
       </div>
 
       <div className="flex border-b border-border">
-        <TabButton active={tab === "stash"} onClick={() => setTab("stash")} label="보유 현황" />
-        <TabButton active={tab === "matches"} onClick={() => setTab("matches")} label="이 실로 뜰 수 있는 도안" />
+        <TabButton active={tab === "stash"} onClick={() => setTab("stash")} label={t("yarn:detail.tabStash")} />
+        <TabButton active={tab === "matches"} onClick={() => setTab("matches")} label={t("yarn:detail.tabMatches")} />
       </div>
 
       {tab === "stash" && (
         <div className="p-4">
           <div className="mb-3 rounded-xl bg-card p-3 text-sm text-muted">
-            총 {yarn.batches.reduce((s, b) => s + b.skeinCount, 0)}타래 · {yarn.batches.reduce((s, b) => s + b.skeinCount * b.weightPerSkeinG, 0)}g ·{" "}
-            {Math.round(yarn.totalM)}m
+            {t("yarn:detail.stockSummary", {
+              count: totalSkeinCount,
+              skeins: totalSkeinCount,
+              grams: yarn.batches.reduce((s, b) => s + b.skeinCount * b.weightPerSkeinG, 0),
+              meters: Math.round(yarn.totalM),
+            })}
             {yarn.committedM > 0 && (
               <div className="mt-1.5 border-t border-border pt-1.5 text-xs">
-                프로젝트 사용 {Math.round(yarn.committedM)}m ·{" "}
-                <span className="font-semibold text-text">쓸 수 있는 양 {Math.round(yarn.availableM)}m</span>
+                {t("yarn:detail.committedSummary", {
+                  committed: Math.round(yarn.committedM),
+                  available: Math.round(yarn.availableM),
+                })}
               </div>
             )}
           </div>
@@ -113,7 +123,9 @@ export function YarnDetailPage() {
                 <div key={u.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs">
                   <span className="truncate text-muted">{u.project.pattern.name}</span>
                   <span className="shrink-0 text-sub">
-                    {Math.round(u.usedM ?? u.reservedM)}m {u.usedM == null ? "예약" : "사용"}
+                    {u.usedM == null
+                      ? t("yarn:detail.usageReserved", { meters: Math.round(u.reservedM) })
+                      : t("yarn:detail.usageUsed", { meters: Math.round(u.usedM) })}
                   </span>
                 </div>
               ))}
@@ -131,7 +143,7 @@ export function YarnDetailPage() {
               onClick={() => setAddingBatch(true)}
               className="mt-3 flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-sm font-semibold text-accent"
             >
-              <Plus size={16} /> 배치 추가
+              <Plus size={16} /> {t("yarn:detail.addBatch")}
             </button>
           )}
         </div>
@@ -140,14 +152,14 @@ export function YarnDetailPage() {
       {tab === "matches" && (
         <div className="p-4">
           {!yarn.weightCategory && (
-            <EmptyState message="굵기를 입력하면 추천받을 수 있어요" />
+            <EmptyState message={t("yarn:detail.weightHint")} />
           )}
           {yarn.consumed && yarn.weightCategory && (
-            <EmptyState message="소진 처리된 실이라 도안 추천이 표시되지 않아요" />
+            <EmptyState message={t("yarn:detail.consumedNoMatches")} />
           )}
-          {matchesEnabled && matchesLoading && <p className="py-10 text-center text-sm text-muted">불러오는 중...</p>}
+          {matchesEnabled && matchesLoading && <p className="py-10 text-center text-sm text-muted">{t("common:loading")}</p>}
           {matchesEnabled && matches && matches.length === 0 && (
-            <EmptyState message="같은 굵기의 도안을 찾지 못했어요, 로컬 DB에 등록된 도안이 아직 적어서일 수 있어요" />
+            <EmptyState message={t("yarn:detail.matchesEmpty")} />
           )}
           {matchesEnabled && matches && matches.length > 0 && (
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
@@ -165,12 +177,12 @@ export function YarnDetailPage() {
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-muted">
                     <span>
                       {m.pattern.requiredMaxM && m.pattern.requiredMaxM > m.pattern.requiredMinM
-                        ? `${m.pattern.requiredMinM}~${m.pattern.requiredMaxM}m 필요`
-                        : `${m.pattern.requiredMinM}m 필요`}
+                        ? t("yarn:detail.matchRequiredRange", { min: m.pattern.requiredMinM, max: m.pattern.requiredMaxM })
+                        : t("yarn:detail.matchRequiredMin", { min: m.pattern.requiredMinM })}
                     </span>
                     <GaugeChipDisplay chip={m.gaugeChip} />
                   </div>
-                  {m.needsLotMixing && <p className="mt-1 text-xs text-warn">로트를 섞어야 해요</p>}
+                  {m.needsLotMixing && <p className="mt-1 text-xs text-warn">{t("yarn:detail.needsLotMixing")}</p>}
                 </button>
               ))}
             </div>
@@ -180,10 +192,10 @@ export function YarnDetailPage() {
 
       {confirmingDelete && (
         <ConfirmModal
-          title="실을 삭제할까요?"
-          description="삭제하면 되돌릴 수 없어요. 배치·사진도 함께 삭제돼요"
+          title={t("yarn:detail.deleteConfirmTitle")}
+          description={t("yarn:detail.deleteConfirmDesc")}
           danger
-          confirmLabel="삭제"
+          confirmLabel={t("common:action.delete")}
           onConfirm={handleDelete}
           onCancel={() => setConfirmingDelete(false)}
         />
@@ -206,6 +218,7 @@ function TabButton({ active, onClick, label }: { active: boolean; onClick: () =>
 }
 
 function AddBatchForm({ yarnId, onDone }: { yarnId: string; onDone: () => void }) {
+  const { t } = useTranslation(["yarn", "common"]);
   const addBatch = useAddBatchMutation(yarnId);
   const [dyeLot, setDyeLot] = useState("");
   const [skeinCount, setSkeinCount] = useState("");
@@ -236,17 +249,17 @@ function AddBatchForm({ yarnId, onDone }: { yarnId: string; onDone: () => void }
         </button>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <input value={dyeLot} onChange={(e) => setDyeLot(e.target.value)} placeholder="염색로트 (선택)" className="col-span-2 rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent" />
-        <input value={skeinCount} onChange={(e) => setSkeinCount(e.target.value)} type="number" placeholder="타래 수" className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent" />
-        <input value={weightPerSkein} onChange={(e) => setWeightPerSkein(e.target.value)} type="number" placeholder={`타래당 무게 (${unit === "METRIC" ? "g" : "oz"})`} className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent" />
-        <input value={lengthPerSkein} onChange={(e) => setLengthPerSkein(e.target.value)} type="number" placeholder={`타래당 길이 (${unit === "METRIC" ? "m" : "yd"})`} className="col-span-2 rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent" />
+        <input value={dyeLot} onChange={(e) => setDyeLot(e.target.value)} placeholder={t("yarn:addBatch.dyeLotPlaceholder")} className="col-span-2 rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent" />
+        <input value={skeinCount} onChange={(e) => setSkeinCount(e.target.value)} type="number" placeholder={t("yarn:addBatch.skeinCountPlaceholder")} className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent" />
+        <input value={weightPerSkein} onChange={(e) => setWeightPerSkein(e.target.value)} type="number" placeholder={t("yarn:addBatch.weightPlaceholder", { unit: unit === "METRIC" ? "g" : "oz" })} className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent" />
+        <input value={lengthPerSkein} onChange={(e) => setLengthPerSkein(e.target.value)} type="number" placeholder={t("yarn:addBatch.lengthPlaceholder", { unit: unit === "METRIC" ? "m" : "yd" })} className="col-span-2 rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent" />
       </div>
       <div className="mt-2 flex gap-2">
         <button onClick={onDone} className="flex-1 cursor-pointer rounded-lg border border-border bg-card py-2 text-sm font-medium text-text">
-          취소
+          {t("common:action.cancel")}
         </button>
         <button onClick={handleSubmit} disabled={addBatch.isPending} className="flex-1 cursor-pointer rounded-lg border-none bg-accent py-2 text-sm font-semibold text-white disabled:opacity-50">
-          추가
+          {t("yarn:addBatch.submit")}
         </button>
       </div>
     </div>

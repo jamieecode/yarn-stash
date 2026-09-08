@@ -1,0 +1,40 @@
+{
+  "list": {
+    "title": "Projects",
+    "filterAll": "All",
+    "emptyMessage": "No projects started yet — find a pattern you like in the Patterns tab and start one",
+    "yarnUnlinked": "No yarn linked",
+    "yarnMoreCount": "{{name}} +{{count}} more",
+    "rowCount_one": "{{count}} row",
+    "rowCount_other": "{{count}} rows"
+  },
+  "detail": {
+    "title": "Project detail",
+    "deleteAria": "Delete",
+    "completedNote": "Congrats on finishing! The amount used has been reflected in your stash",
+    "reset": "Reset",
+    "photoLabel": "Progress photos",
+    "memoLabel": "Notes",
+    "deleteConfirmTitle": "Delete this project?",
+    "deleteConfirmDesc": "This can't be undone",
+    "resetConfirmTitle": "Reset the row count to 0?"
+  },
+  "completeModal": {
+    "title": "Congrats on finishing!",
+    "description": "Confirming how much yarn you actually used updates your stash",
+    "summary": "Owned {{total}}m · Reserved {{reserved}}m",
+    "submit": "Complete"
+  },
+  "yarnList": {
+    "heading": "Yarn used",
+    "linkAction": "Link yarn",
+    "emptyNotice": "No yarn linked yet. Linking one reserves that amount from your stash",
+    "noCandidates": "No yarn available to link",
+    "colorUnspecified": "Color not set",
+    "colorAndOwned": "{{color}} · {{meters}}m owned",
+    "removeAria": "Unlink",
+    "reserved": "Reserved",
+    "usedConfirmed": "Used (confirmed)",
+    "overReserved": "This reserves more than you own (headroom {{ceiling}}m)"
+  }
+}

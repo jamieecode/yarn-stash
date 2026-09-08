@@ -17,16 +17,6 @@ export type CraftType = "KNITTING" | "CROCHET" | "BOTH";
 export type UnitSystem = "METRIC" | "IMPERIAL";
 export type ProjectStatus = "IN_PROGRESS" | "COMPLETED" | "ON_HOLD";
 
-export const WEIGHT_CATEGORY_LABEL: Record<WeightCategory, string> = {
-  LACE: "레이스",
-  FINGERING: "핑거링",
-  SPORT: "스포츠",
-  DK: "DK",
-  WORSTED: "워스티드",
-  ARAN: "아란",
-  BULKY: "벌키",
-  SUPER_BULKY: "슈퍼벌키",
-};
 export const WEIGHT_CATEGORY_ORDER: WeightCategory[] = [
   "LACE",
   "FINGERING",
@@ -38,18 +28,8 @@ export const WEIGHT_CATEGORY_ORDER: WeightCategory[] = [
   "SUPER_BULKY",
 ];
 
-export const CRAFT_TYPE_LABEL: Record<CraftType, string> = {
-  KNITTING: "대바늘",
-  CROCHET: "코바늘",
-  BOTH: "대바늘+코바늘",
-};
 export const CRAFT_TYPE_ORDER: CraftType[] = ["KNITTING", "CROCHET", "BOTH"];
 
-export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
-  IN_PROGRESS: "진행중",
-  COMPLETED: "완료",
-  ON_HOLD: "보류",
-};
 export const PROJECT_STATUS_ORDER: ProjectStatus[] = ["IN_PROGRESS", "COMPLETED", "ON_HOLD"];
 
 export interface User {
@@ -227,13 +207,6 @@ export interface Project {
 
 export type YardageLabel = "AMPLE" | "SUFFICIENT" | "TIGHT" | "INSUFFICIENT";
 export type GaugeChip = "MATCH" | "DIFFERENT" | null;
-
-export const YARDAGE_LABEL_TEXT: Record<YardageLabel, string> = {
-  AMPLE: "여유로움",
-  SUFFICIENT: "충분함",
-  TIGHT: "빠듯함",
-  INSUFFICIENT: "부족함",
-};
 
 // GET /yarns/:id/pattern-matches 응답 항목
 export interface YarnPatternMatch {

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { TopBar } from "../../components/layout/TopBar";
 import { PhotoUploader } from "../../components/ui/PhotoUploader";
 import { YarnCatalogAutocomplete } from "../../components/yarn/YarnCatalogAutocomplete";
 import { useCreateYarnMutation } from "../../api/useYarns";
-import { WEIGHT_CATEGORY_LABEL, WEIGHT_CATEGORY_ORDER, type PhotoInput, type UnitSystem, type WeightCategory } from "../../types/api";
+import { WEIGHT_CATEGORY_ORDER, type PhotoInput, type UnitSystem, type WeightCategory } from "../../types/api";
+import { weightCategoryLabel } from "../../lib/enumLabels";
 
 interface BatchFormRow {
   dyeLot: string;
@@ -19,6 +21,7 @@ const EMPTY_BATCH: BatchFormRow = { dyeLot: "", skeinCount: "", weightPerSkein: 
 
 // 화면설계서 2번(실 등록)
 export function YarnRegisterPage() {
+  const { t } = useTranslation(["yarn", "enums"]);
   const navigate = useNavigate();
   const createYarn = useCreateYarnMutation();
 
@@ -96,71 +99,71 @@ export function YarnRegisterPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar title="실 등록" />
+      <TopBar title={t("yarn:register.title")} />
       <div className="flex-1 overflow-y-auto p-4 pb-28">
         <section>
-          <label className="mb-1.5 block text-xs font-semibold text-muted">사진</label>
+          <label className="mb-1.5 block text-xs font-semibold text-muted">{t("yarn:register.photoLabel")}</label>
           <PhotoUploader photos={photos} onChange={setPhotos} />
         </section>
 
         <section className="mt-5">
-          <label className="mb-1.5 block text-xs font-semibold text-muted">브랜드 또는 라인명</label>
+          <label className="mb-1.5 block text-xs font-semibold text-muted">{t("yarn:register.brandOrLineLabel")}</label>
           <YarnCatalogAutocomplete query={catalogQuery} onQueryChange={handleCatalogQueryChange} onSelect={handleCatalogSelect} />
-          {autoFilledFrom && <p className="mt-1 text-xs text-sub">{autoFilledFrom}에서 자동 입력됨</p>}
+          {autoFilledFrom && <p className="mt-1 text-xs text-sub">{t("yarn:register.autoFilledFrom", { source: autoFilledFrom })}</p>}
         </section>
 
         <section className="mt-3 grid grid-cols-2 gap-2">
-          <TextField label="라인명" value={lineName} onChange={setLineName} />
-          <TextField label="색상명" value={colorName} onChange={setColorName} />
-          <TextField label="소재" value={fiber} onChange={setFiber} className="col-span-2" />
+          <TextField label={t("yarn:register.lineNameLabel")} value={lineName} onChange={setLineName} />
+          <TextField label={t("yarn:register.colorNameLabel")} value={colorName} onChange={setColorName} />
+          <TextField label={t("yarn:register.fiberLabel")} value={fiber} onChange={setFiber} className="col-span-2" />
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">굵기</label>
+            <label className="mb-1 block text-xs font-semibold text-muted">{t("yarn:register.weightLabel")}</label>
             <select
               value={weightCategory}
               onChange={(e) => setWeightCategory(e.target.value as WeightCategory | "")}
               className="w-full rounded-lg border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-accent"
             >
-              <option value="">선택 안 함</option>
+              <option value="">{t("yarn:register.weightNotSelected")}</option>
               {WEIGHT_CATEGORY_ORDER.map((w) => (
                 <option key={w} value={w}>
-                  {WEIGHT_CATEGORY_LABEL[w]}
+                  {weightCategoryLabel(t, w)}
                 </option>
               ))}
             </select>
           </div>
-          <TextField label="추천 바늘 사이즈" value={needleSize} onChange={setNeedleSize} />
-          <TextField label="게이지 (콧수/10cm)" value={gaugeStitches} onChange={setGaugeStitches} type="number" min={0} />
+          <TextField label={t("yarn:register.needleSizeLabel")} value={needleSize} onChange={setNeedleSize} />
+          <TextField label={t("yarn:register.gaugeLabel")} value={gaugeStitches} onChange={setGaugeStitches} type="number" min={0} />
         </section>
         {!weightCategory && (
-          <p className="mt-1.5 text-xs text-muted">굵기를 입력하면 도안 추천을 받을 수 있어요</p>
+          <p className="mt-1.5 text-xs text-muted">{t("yarn:register.weightHint")}</p>
         )}
 
         <section className="mt-4">
-          <label className="mb-1.5 block text-xs font-semibold text-muted">메모</label>
+          <label className="mb-1.5 block text-xs font-semibold text-muted">{t("yarn:register.memoLabel")}</label>
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
             rows={2}
-            placeholder="예: 선물로 받음, 세일 때 구매"
+            placeholder={t("yarn:register.memoPlaceholder")}
             className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm outline-none focus:border-accent"
           />
         </section>
 
         <section className="mt-5">
           <div className="mb-2 flex items-center justify-between">
-            <label className="text-xs font-semibold text-muted">보유 기록</label>
+            <label className="text-xs font-semibold text-muted">{t("yarn:register.stashLabel")}</label>
             <div className="flex overflow-hidden rounded-lg border border-border text-xs">
               <button
                 onClick={() => setUnit("METRIC")}
                 className={`cursor-pointer border-none px-2.5 py-1 ${unit === "METRIC" ? "bg-accent text-white" : "bg-card text-muted"}`}
               >
-                g·m
+                {t("yarn:register.unitMetric")}
               </button>
               <button
                 onClick={() => setUnit("IMPERIAL")}
                 className={`cursor-pointer border-none px-2.5 py-1 ${unit === "IMPERIAL" ? "bg-accent text-white" : "bg-card text-muted"}`}
               >
-                oz·yd
+                {t("yarn:register.unitImperial")}
               </button>
             </div>
           </div>
@@ -172,7 +175,7 @@ export function YarnRegisterPage() {
                   <input
                     value={batch.dyeLot}
                     onChange={(e) => updateBatch(index, { dyeLot: e.target.value })}
-                    placeholder="염색로트 (선택)"
+                    placeholder={t("yarn:register.dyeLotPlaceholder")}
                     className="col-span-2 rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
                   <input
@@ -180,7 +183,7 @@ export function YarnRegisterPage() {
                     onChange={(e) => updateBatch(index, { skeinCount: e.target.value })}
                     type="number"
                     min={1}
-                    placeholder="보유 타래 수"
+                    placeholder={t("yarn:register.skeinCountPlaceholder")}
                     className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
                   <input
@@ -194,7 +197,7 @@ export function YarnRegisterPage() {
                     onChange={(e) => updateBatch(index, { weightPerSkein: e.target.value })}
                     type="number"
                     min={0}
-                    placeholder={`타래당 무게 (${unit === "METRIC" ? "g" : "oz"})`}
+                    placeholder={t("yarn:register.weightPerSkeinPlaceholder", { unit: unit === "METRIC" ? "g" : "oz" })}
                     className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
                   <input
@@ -202,7 +205,7 @@ export function YarnRegisterPage() {
                     onChange={(e) => updateBatch(index, { lengthPerSkein: e.target.value })}
                     type="number"
                     min={0}
-                    placeholder={`타래당 길이 (${unit === "METRIC" ? "m" : "yd"})`}
+                    placeholder={t("yarn:register.lengthPerSkeinPlaceholder", { unit: unit === "METRIC" ? "m" : "yd" })}
                     className="rounded-lg border border-border px-2.5 py-2 text-sm outline-none focus:border-accent"
                   />
                 </div>
@@ -211,7 +214,7 @@ export function YarnRegisterPage() {
                     onClick={() => removeBatch(index)}
                     className="mt-2 flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs text-danger"
                   >
-                    <Trash2 size={12} /> 이 배치 제거
+                    <Trash2 size={12} /> {t("yarn:register.removeBatch")}
                   </button>
                 )}
               </div>
@@ -222,10 +225,10 @@ export function YarnRegisterPage() {
             onClick={() => setBatches((prev) => [...prev, { ...EMPTY_BATCH }])}
             className="mt-2 flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs font-semibold text-accent"
           >
-            <Plus size={14} /> 다른 배치 추가
+            <Plus size={14} /> {t("yarn:register.addBatch")}
           </button>
           {!batchesValid && batches.some((b) => b.skeinCount || b.weightPerSkein || b.lengthPerSkein) && (
-            <p className="mt-1.5 text-xs text-danger">보유 타래 수는 1개 이상, 무게·길이는 0보다 커야 해요</p>
+            <p className="mt-1.5 text-xs text-danger">{t("yarn:register.batchValidationError")}</p>
           )}
         </section>
       </div>
@@ -236,9 +239,9 @@ export function YarnRegisterPage() {
           disabled={!canSubmit || createYarn.isPending}
           className="w-full cursor-pointer rounded-xl border-none bg-accent py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {createYarn.isPending ? "등록 중..." : "등록하기"}
+          {createYarn.isPending ? t("yarn:register.submitting") : t("yarn:register.submit")}
         </button>
-        {createYarn.isError && <p className="mt-2 text-center text-xs text-danger">등록에 실패했어요. 다시 시도해주세요</p>}
+        {createYarn.isError && <p className="mt-2 text-center text-xs text-danger">{t("yarn:register.submitError")}</p>}
       </div>
     </div>
   );

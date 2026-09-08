@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { useProjectsQuery } from "../../api/useProjects";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { PROJECT_STATUS_LABEL, PROJECT_STATUS_ORDER, type Project, type ProjectStatus } from "../../types/api";
+import { PROJECT_STATUS_ORDER, type Project, type ProjectStatus } from "../../types/api";
+import { projectStatusLabel } from "../../lib/enumLabels";
 
 const STATUS_BADGE_CLASS: Record<ProjectStatus, string> = {
   IN_PROGRESS: "bg-accent-soft text-accent",
@@ -11,15 +14,16 @@ const STATUS_BADGE_CLASS: Record<ProjectStatus, string> = {
 };
 
 // 카드 한 줄에 실 이름을 다 나열하면 넘치므로 첫 실만 쓰고 나머지는 개수로 접는다 (배색 프로젝트 대응)
-function describeYarns(project: Project) {
+function describeYarns(t: TFunction, project: Project) {
   const [first, ...rest] = project.yarnUsages;
-  if (!first) return "실 미연결";
+  if (!first) return t("project:list.yarnUnlinked");
   const name = [first.yarn.brand, first.yarn.lineName].filter(Boolean).join(" ");
-  return rest.length > 0 ? `${name} 외 ${rest.length}개` : name;
+  return rest.length > 0 ? t("project:list.yarnMoreCount", { name, count: rest.length }) : name;
 }
 
 // 화면설계서 7번(프로젝트 목록)
 export function ProjectListPage() {
+  const { t, i18n } = useTranslation(["project", "enums", "common"]);
   const navigate = useNavigate();
   const [filter, setFilter] = useState<ProjectStatus | "ALL">("ALL");
   const { data: projects, isLoading } = useProjectsQuery(filter === "ALL" ? {} : { status: filter });
@@ -27,20 +31,20 @@ export function ProjectListPage() {
   return (
     <div>
       <div className="px-4 pt-4">
-        <h1 className="text-lg font-bold text-text">프로젝트</h1>
+        <h1 className="text-lg font-bold text-text">{t("project:list.title")}</h1>
       </div>
 
       <div className="mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1">
-        <FilterChip active={filter === "ALL"} onClick={() => setFilter("ALL")} label="전체" />
+        <FilterChip active={filter === "ALL"} onClick={() => setFilter("ALL")} label={t("project:list.filterAll")} />
         {PROJECT_STATUS_ORDER.map((s) => (
-          <FilterChip key={s} active={filter === s} onClick={() => setFilter(s)} label={PROJECT_STATUS_LABEL[s]} />
+          <FilterChip key={s} active={filter === s} onClick={() => setFilter(s)} label={projectStatusLabel(t, s)} />
         ))}
       </div>
 
       <div className="p-4">
-        {isLoading && <p className="py-10 text-center text-sm text-muted">불러오는 중...</p>}
+        {isLoading && <p className="py-10 text-center text-sm text-muted">{t("common:loading")}</p>}
         {projects && projects.length === 0 && (
-          <EmptyState message="아직 시작한 프로젝트가 없어요, 도안 탭에서 마음에 드는 도안을 찾아 시작해보세요" />
+          <EmptyState message={t("project:list.emptyMessage")} />
         )}
         {projects && projects.length > 0 && (
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
@@ -53,13 +57,15 @@ export function ProjectListPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-text">{project.pattern.name}</span>
                   <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_BADGE_CLASS[project.status]}`}>
-                    {PROJECT_STATUS_LABEL[project.status]}
+                    {projectStatusLabel(t, project.status)}
                   </span>
                 </div>
                 <div className="mt-1 text-xs text-muted">
-                  {describeYarns(project)} · {project.currentRow}단
+                  {describeYarns(t, project)} · {t("project:list.rowCount", { count: project.currentRow })}
                 </div>
-                <div className="mt-1 text-[11px] text-muted">{new Date(project.updatedAt).toLocaleDateString()}</div>
+                <div className="mt-1 text-[11px] text-muted">
+                  {new Date(project.updatedAt).toLocaleDateString(i18n.language)}
+                </div>
               </button>
             ))}
           </div>

@@ -1,19 +1,21 @@
 import { BookOpen, Home, ListChecks, Package, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const TABS = [
-  { to: "/home", label: "홈", Icon: Home },
-  { to: "/yarns", label: "실", Icon: Package },
-  { to: "/patterns", label: "도안", Icon: BookOpen },
-  { to: "/projects", label: "프로젝트", Icon: ListChecks },
-  { to: "/my", label: "마이", Icon: User },
+  { to: "/home", labelKey: "tab.home", Icon: Home },
+  { to: "/yarns", labelKey: "tab.yarn", Icon: Package },
+  { to: "/patterns", labelKey: "tab.pattern", Icon: BookOpen },
+  { to: "/projects", labelKey: "tab.project", Icon: ListChecks },
+  { to: "/my", labelKey: "tab.my", Icon: User },
 ];
 
 // 화면설계서 0-2 하단 탭바 - 목록형 화면에서만 표시(MainLayout에서만 렌더)
 export function BottomTabBar() {
+  const { t } = useTranslation("common");
   return (
     <div className="flex border-t border-border bg-card">
-      {TABS.map(({ to, label, Icon }) => (
+      {TABS.map(({ to, labelKey, Icon }) => (
         <NavLink
           key={to}
           to={to}
@@ -26,7 +28,7 @@ export function BottomTabBar() {
           {({ isActive }) => (
             <>
               <Icon size={20} strokeWidth={isActive ? 2.4 : 1.8} />
-              <span className={`text-[11px] ${isActive ? "font-semibold" : "font-normal"}`}>{label}</span>
+              <span className={`text-[11px] ${isActive ? "font-semibold" : "font-normal"}`}>{t(labelKey)}</span>
             </>
           )}
         </NavLink>

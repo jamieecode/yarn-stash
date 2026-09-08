@@ -1,3 +1,5 @@
+import i18n from "./i18n";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api";
 const TOKEN_STORAGE_KEY = "yarnStash.accessToken";
 
@@ -35,7 +37,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new ApiError(res.status, body?.message ?? `요청에 실패했어요 (${res.status})`);
+    throw new ApiError(res.status, body?.message ?? i18n.t("common:error.requestFailed", { status: res.status }));
   }
   if (res.status === 204) return undefined as T;
   return res.json();
