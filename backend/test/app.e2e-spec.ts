@@ -59,6 +59,56 @@ describe("App e2e", () => {
     await prisma.user.deleteMany();
   });
 
+  // 도안 목록 커서 페이지네이션 - keyset 조건이 실제 Postgres에서 중복/누락 없이 이어지는지 확인
+  describe("도안 목록 페이지네이션", () => {
+    it("createdAt이 같은 도안이 페이지 경계에 걸려도 중복/누락 없이 전부 순회하고, 내 찜 여부를 표시한다", async () => {
+      const guestRes = await request(app.getHttpServer()).post("/api/auth/guest").expect(201);
+      const token = guestRes.body.accessToken as string;
+      const owner = await prisma.user.create({ data: { provider: "GUEST" } });
+
+      const sameTime = new Date("2026-09-01T00:00:00Z");
+      const created = await Promise.all(
+        Array.from({ length: 5 }, (_, i) =>
+          prisma.pattern.create({
+            data: {
+              createdByUserId: owner.id,
+              name: `페이지 도안 ${i}`,
+              craftType: "KNITTING",
+              weightCategory: "DK",
+              requiredMinM: 300,
+              sourceType: "USER",
+              createdAt: i < 3 ? sameTime : new Date(sameTime.getTime() + i * 1000),
+            },
+          }),
+        ),
+      );
+      await request(app.getHttpServer())
+        .post(`/api/patterns/${created[0].id}/bookmark`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(201);
+
+      const seen: { id: string; isBookmarked: boolean }[] = [];
+      let cursor: string | null = null;
+      do {
+        const res = await request(app.getHttpServer())
+          .get("/api/patterns")
+          .query(cursor ? { limit: 2, cursor } : { limit: 2 })
+          .set("Authorization", `Bearer ${token}`)
+          .expect(200);
+        expect(res.body.items.length).toBeLessThanOrEqual(2);
+        seen.push(...res.body.items);
+        cursor = res.body.nextCursor;
+      } while (cursor);
+
+      expect(seen.map((p) => p.id).sort()).toEqual(created.map((p) => p.id).sort());
+      expect(seen.filter((p) => p.isBookmarked).map((p) => p.id)).toEqual([created[0].id]);
+    });
+
+    it("잘못된 커서는 400으로 거부한다", async () => {
+      await request(app.getHttpServer()).get("/api/patterns").query({ cursor: "garbage" }).expect(400);
+    });
+  });
+
   // 0. 헬스체크: Render 배포 인스턴스가 슬립되지 않도록 GitHub Actions에서 주기적으로 호출하는 엔드포인트
   describe("헬스체크", () => {
     it("GET /api/health는 200과 status ok를 반환한다", async () => {

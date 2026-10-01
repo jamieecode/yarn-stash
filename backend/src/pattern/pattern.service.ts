@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { toMeters } from "../common/units.util";
 import {
@@ -22,20 +22,45 @@ export class PatternService {
     private readonly ravelry: RavelryService,
   ) {}
 
-  // 화면설계서 4번(도안 목록) - 게스트도 조회 가능
-  async findAll(params: { craftType?: string; weightCategory?: string; bookmarkedBy?: string }) {
-    return this.prisma.pattern.findMany({
+  // 화면설계서 4번(도안 목록) - 게스트도 조회 가능. 도안은 모든 유저가 공유하는 테이블이라 계속 쌓이므로 커서 기반으로 끊어서 준다.
+  // 커서는 (createdAt, id) keyset - 페이지 사이에 도안이 삭제돼도 Prisma cursor처럼 깨지지 않고, 새로 등록된 도안 때문에 중복/누락도 없음.
+  // 항목마다 isBookmarked를 실어 보내서, 목록 화면이 하트 표시용으로 내 찜 전체를 따로 불러올 필요가 없게 한다
+  async findAll(params: {
+    craftType?: string;
+    weightCategory?: string;
+    bookmarkedBy?: string;
+    userId?: string;
+    cursor?: string;
+    limit?: number;
+  }) {
+    const limit = clampPageSize(params.limit);
+    const after = params.cursor ? decodeCursor(params.cursor) : null;
+
+    const rows = await this.prisma.pattern.findMany({
       where: {
         craftType: params.craftType as any,
         weightCategory: params.weightCategory as any,
         ...(params.bookmarkedBy && { bookmarks: { some: { userId: params.bookmarkedBy } } }),
+        ...(after && {
+          OR: [{ createdAt: { lt: after.createdAt } }, { createdAt: after.createdAt, id: { lt: after.id } }],
+        }),
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: limit + 1,
+      include: myBookmarkInclude(params.userId),
     });
+
+    const hasMore = rows.length > limit;
+    const page = hasMore ? rows.slice(0, limit) : rows;
+    const last = page[page.length - 1];
+    return {
+      items: page.map(withBookmarkFlag),
+      nextCursor: hasMore ? encodeCursor(last.createdAt, last.id) : null,
+    };
   }
 
   // 화면설계서 5번 - 로컬 우선 + Ravelry 병합 검색 (결과가 적을 때만 Ravelry 폴백 호출)
-  async search(query: string) {
+  async search(query: string, userId?: string) {
     if (!query?.trim()) return [];
 
     const local = await this.prisma.pattern.findMany({
@@ -46,8 +71,9 @@ export class PatternService {
         ],
       },
       take: 20,
+      include: myBookmarkInclude(userId),
     });
-    const localResults = local.map((p) => ({ source: "LOCAL" as const, ...p }));
+    const localResults = local.map((p) => ({ source: "LOCAL" as const, ...withBookmarkFlag(p) }));
     if (local.length >= 20) return localResults;
 
     const cachedRavelryIds = new Set(local.map((p) => p.ravelryId).filter((id): id is number => id != null));
@@ -241,4 +267,34 @@ export class PatternService {
       throw new ForbiddenException("도안 등록/수정은 로그인 후 이용할 수 있어요");
     }
   }
+}
+
+export const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 50;
+
+function clampPageSize(limit?: number): number {
+  if (!limit || !Number.isFinite(limit) || limit < 1) return DEFAULT_PAGE_SIZE;
+  return Math.min(Math.floor(limit), MAX_PAGE_SIZE);
+}
+
+// 클라이언트 입장에선 불투명한 문자열 - 내부적으로 "ISO시각|id"를 base64url로 감싼 것
+function encodeCursor(createdAt: Date, id: string): string {
+  return Buffer.from(`${createdAt.toISOString()}|${id}`).toString("base64url");
+}
+
+function decodeCursor(cursor: string): { createdAt: Date; id: string } {
+  const [iso, id] = Buffer.from(cursor, "base64url").toString().split("|");
+  const createdAt = new Date(iso);
+  if (!id || Number.isNaN(createdAt.getTime())) throw new BadRequestException("잘못된 커서입니다");
+  return { createdAt, id };
+}
+
+// 내 찜 여부만 알면 되므로 내 것 1건만 붙여온다. 비로그인이면 어떤 userId와도 안 맞는 빈 문자열로 걸러서 항상 빈 배열
+// (userId: undefined를 넘기면 Prisma가 조건을 무시하고 남의 찜까지 가져오므로 주의)
+function myBookmarkInclude(userId?: string) {
+  return { bookmarks: { where: { userId: userId ?? "" }, select: { id: true }, take: 1 } };
+}
+
+function withBookmarkFlag<T extends { bookmarks: unknown[] }>({ bookmarks, ...pattern }: T) {
+  return { ...pattern, isBookmarked: bookmarks.length > 0 };
 }

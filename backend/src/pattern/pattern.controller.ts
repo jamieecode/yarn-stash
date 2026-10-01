@@ -13,14 +13,28 @@ export class PatternController {
   // 조회는 게스트도 가능 - OptionalAuthGuard (기획서 2.9)
   @UseGuards(OptionalAuthGuard)
   @Get()
-  findAll(@Query("craftType") craftType?: string, @Query("weightCategory") weightCategory?: string, @Query("bookmarked") bookmarked?: string, @CurrentUser() user?: { userId: string }) {
-    return this.patternService.findAll({ craftType, weightCategory, bookmarkedBy: bookmarked === "true" ? user?.userId : undefined });
+  findAll(
+    @Query("craftType") craftType?: string,
+    @Query("weightCategory") weightCategory?: string,
+    @Query("bookmarked") bookmarked?: string,
+    @Query("cursor") cursor?: string,
+    @Query("limit") limit?: string,
+    @CurrentUser() user?: { userId: string },
+  ) {
+    return this.patternService.findAll({
+      craftType,
+      weightCategory,
+      bookmarkedBy: bookmarked === "true" ? user?.userId : undefined,
+      userId: user?.userId,
+      cursor,
+      limit: limit ? Number(limit) : undefined,
+    });
   }
 
   @UseGuards(OptionalAuthGuard)
   @Get("search")
-  search(@Query("q") q: string) {
-    return this.patternService.search(q);
+  search(@Query("q") q: string, @CurrentUser() user?: { userId: string }) {
+    return this.patternService.search(q, user?.userId);
   }
 
   // Ravelry 검색 결과를 클릭했을 때 등록 폼을 자동으로 채우기 위한 상세 조회

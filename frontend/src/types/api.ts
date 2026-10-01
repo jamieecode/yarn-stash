@@ -140,6 +140,14 @@ export interface Pattern {
   originalYarnLine: string | null;
   // GET /patterns/:id 응답에만 포함 - 로그인 상태일 때 내 찜 여부/메모 (화면설계서 6번)
   myBookmark?: { memo: string | null } | null;
+  // GET /patterns, /patterns/search 응답에만 포함 - 목록 하트 표시용 내 찜 여부
+  isBookmarked?: boolean;
+}
+
+// GET /patterns 응답 - (createdAt, id) 커서 기반 페이지. nextCursor가 null이면 마지막 페이지
+export interface PatternPage {
+  items: Pattern[];
+  nextCursor: string | null;
 }
 
 // GET /patterns/search 응답

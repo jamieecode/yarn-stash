@@ -1,10 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/apiClient";
 import { buildQuery } from "../lib/queryString";
 import type {
   CreatePatternInput,
   DeleteEligibility,
   Pattern,
+  PatternPage,
   PatternSearchResult,
   PatternYarnMatch,
   RavelryPatternDetail,
@@ -17,10 +18,13 @@ interface PatternListParams {
   bookmarked?: boolean;
 }
 
-export function usePatternsQuery(params: PatternListParams) {
-  return useQuery({
-    queryKey: ["patterns", params],
-    queryFn: () => api.get<Pattern[]>(`/patterns${buildQuery(params)}`),
+// 도안은 전체 유저 공유라 계속 늘어나므로 무한 스크롤로 페이지씩 불러온다
+export function usePatternsInfiniteQuery(params: PatternListParams) {
+  return useInfiniteQuery({
+    queryKey: ["patterns", "list", params],
+    queryFn: ({ pageParam }) => api.get<PatternPage>(`/patterns${buildQuery({ ...params, cursor: pageParam })}`),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 }
 

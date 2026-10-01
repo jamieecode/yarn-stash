@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { usePatternSearchQuery, usePatternsQuery } from "../../api/usePatterns";
+import { usePatternSearchQuery, usePatternsInfiniteQuery } from "../../api/usePatterns";
 import { PatternCard } from "../../components/pattern/PatternCard";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
@@ -22,18 +22,32 @@ export function PatternListPage() {
 
   const isSearching = debouncedQuery.trim().length > 0;
 
-  const listQuery = usePatternsQuery({
+  const listQuery = usePatternsInfiniteQuery({
     craftType: craftFilter === "ALL" ? undefined : craftFilter,
     bookmarked: filter === "BOOKMARKED",
   });
   const searchQuery = usePatternSearchQuery(isSearching ? debouncedQuery : "");
-  // 전체/검색 목록에서도 하트 상태를 표시하기 위해 내 찜 목록을 함께 조회
-  const { data: myBookmarks } = usePatternsQuery({ bookmarked: true });
-  const bookmarkedIds = useMemo(() => new Set((myBookmarks ?? []).map((p) => p.id)), [myBookmarks]);
+  const patterns = listQuery.data?.pages.flatMap((page) => page.items) ?? [];
+
+  // 목록 끝의 센티널이 화면에 들어오면 다음 페이지를 불러온다 (검색 중에는 검색 결과만 보여주므로 비활성)
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = listQuery;
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || isSearching || !hasNextPage) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isFetchingNextPage) fetchNextPage();
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isSearching, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const isEmpty = isSearching
     ? (searchQuery.data?.length ?? 0) === 0 && !searchQuery.isLoading
-    : (listQuery.data?.length ?? 0) === 0 && !listQuery.isLoading;
+    : patterns.length === 0 && !listQuery.isLoading;
 
   return (
     <div>
@@ -79,7 +93,7 @@ export function PatternListPage() {
             {isSearching
               ? searchQuery.data?.map((r) =>
                   r.source === "LOCAL" ? (
-                    <PatternCard key={r.id} pattern={r} isBookmarked={bookmarkedIds.has(r.id)} onOpen={() => navigate(`/patterns/${r.id}`)} />
+                    <PatternCard key={r.id} pattern={r} isBookmarked={Boolean(r.isBookmarked)} onOpen={() => navigate(`/patterns/${r.id}`)} />
                   ) : (
                     <button
                       key={`ravelry-${r.ravelryId}`}
@@ -91,14 +105,20 @@ export function PatternListPage() {
                     </button>
                   ),
                 )
-              : listQuery.data?.map((pattern) => (
+              : patterns.map((pattern) => (
                   <PatternCard
                     key={pattern.id}
                     pattern={pattern}
-                    isBookmarked={bookmarkedIds.has(pattern.id)}
+                    isBookmarked={Boolean(pattern.isBookmarked)}
                     onOpen={() => navigate(`/patterns/${pattern.id}`)}
                   />
                 ))}
+          </div>
+        )}
+
+        {!isSearching && hasNextPage && (
+          <div ref={sentinelRef} className="py-4 text-center text-xs text-muted">
+            {isFetchingNextPage ? t("common:loading") : null}
           </div>
         )}
 

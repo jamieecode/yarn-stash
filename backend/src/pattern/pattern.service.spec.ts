@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { PrismaService } from "../prisma/prisma.service";
 import { RavelryService } from "../ravelry/ravelry.service";
@@ -38,6 +38,63 @@ describe("PatternService", () => {
     }).compile();
 
     service = moduleRef.get(PatternService);
+  });
+
+  describe("findAll", () => {
+    const row = (id: string, createdAt: string, bookmarked = false) => ({
+      id,
+      createdAt: new Date(createdAt),
+      bookmarks: bookmarked ? [{ id: `b-${id}` }] : [],
+    });
+
+    it("returns one page with nextCursor when more rows exist, and flags my bookmarks", async () => {
+      prisma.pattern.findMany.mockResolvedValue([
+        row("p3", "2026-09-03T00:00:00Z", true),
+        row("p2", "2026-09-02T00:00:00Z"),
+        row("p1", "2026-09-01T00:00:00Z"),
+      ]);
+
+      const result = await service.findAll({ userId: "user-1", limit: 2 });
+
+      expect(prisma.pattern.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 3 }));
+      expect(result.items.map((p) => [p.id, p.isBookmarked])).toEqual([
+        ["p3", true],
+        ["p2", false],
+      ]);
+      expect(result.items[0]).not.toHaveProperty("bookmarks");
+      expect(result.nextCursor).toEqual(expect.any(String));
+    });
+
+    it("returns null nextCursor on the last page", async () => {
+      prisma.pattern.findMany.mockResolvedValue([row("p1", "2026-09-01T00:00:00Z")]);
+      const result = await service.findAll({ limit: 2 });
+      expect(result.nextCursor).toBeNull();
+    });
+
+    it("continues strictly after the cursor's (createdAt, id)", async () => {
+      prisma.pattern.findMany.mockResolvedValueOnce([row("p3", "2026-09-03T00:00:00Z"), row("p2", "2026-09-02T00:00:00Z")]);
+      const first = await service.findAll({ limit: 1 });
+
+      prisma.pattern.findMany.mockResolvedValueOnce([]);
+      await service.findAll({ limit: 1, cursor: first.nextCursor! });
+
+      expect(prisma.pattern.findMany.mock.calls[1][0].where.OR).toEqual([
+        { createdAt: { lt: new Date("2026-09-03T00:00:00Z") } },
+        { createdAt: new Date("2026-09-03T00:00:00Z"), id: { lt: "p3" } },
+      ]);
+    });
+
+    it("clamps limit to the max page size and falls back to default when invalid", async () => {
+      prisma.pattern.findMany.mockResolvedValue([]);
+      await service.findAll({ limit: 1000 });
+      await service.findAll({ limit: Number.NaN });
+      expect(prisma.pattern.findMany.mock.calls.map((c) => c[0].take)).toEqual([51, 21]);
+    });
+
+    it("rejects a malformed cursor", async () => {
+      await expect(service.findAll({ cursor: "garbage" })).rejects.toThrow(BadRequestException);
+      expect(prisma.pattern.findMany).not.toHaveBeenCalled();
+    });
   });
 
   describe("create", () => {
