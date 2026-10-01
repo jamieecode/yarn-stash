@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { WeightCategory } from "@prisma/client";
 import { YD_TO_M } from "../common/units.util";
@@ -51,9 +51,21 @@ export interface RavelryPatternDetail extends RavelrySearchPattern {
   sourceUrl?: string;
 }
 
+// Ravelry가 응답 없이 매달리면 검색 화면 전체가 같이 멈추므로 상한을 둔다
+const REQUEST_TIMEOUT_MS = 8000;
+
 @Injectable()
-export class RavelryService {
+export class RavelryService implements OnModuleInit {
+  private readonly logger = new Logger(RavelryService.name);
+
   constructor(private readonly config: ConfigService) {}
+
+  // 키가 비어 있으면 모든 Ravelry 호출이 조용히 건너뛰어지므로, 배포 환경변수 누락을 기동 시점에 한 번 알린다
+  onModuleInit() {
+    if (!this.isConfigured()) {
+      this.logger.warn("RAVELRY_API_KEY/RAVELRY_API_SECRET이 설정되지 않아 Ravelry 검색 폴백이 비활성화됩니다");
+    }
+  }
 
   isConfigured(): boolean {
     return Boolean(this.config.get<string>("RAVELRY_API_KEY") && this.config.get<string>("RAVELRY_API_SECRET"));
@@ -173,18 +185,41 @@ export class RavelryService {
     };
   }
 
+  // Ravelry 장애/네트워크 오류가 우리 서비스 전체를 막으면 안 되므로 실패는 여전히 null(폴백 실패)로 돌려주지만,
+  // 크리덴셜 만료/오발급까지 "결과 없음"으로 묻히지 않도록 원인별로 로그를 남긴다
   private async get(path: string): Promise<unknown | null> {
     const key = this.config.get<string>("RAVELRY_API_KEY") ?? "";
     const secret = this.config.get<string>("RAVELRY_API_SECRET") ?? "";
     const auth = "Basic " + Buffer.from(`${key}:${secret}`).toString("base64");
+    // 검색어는 사용자 입력이라 로그에는 경로만 남긴다
+    const endpoint = path.split("?")[0];
 
     try {
-      const res = await fetch(`${RAVELRY_BASE_URL}${path}`, { headers: { Authorization: auth } });
-      if (!res.ok) return null;
+      const res = await fetch(`${RAVELRY_BASE_URL}${path}`, {
+        headers: { Authorization: auth },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+      if (!res.ok) {
+        this.logFailedResponse(endpoint, res.status);
+        return null;
+      }
       return await res.json();
-    } catch {
-      // Ravelry 장애/네트워크 오류가 우리 서비스 전체를 막으면 안 됨 - 폴백 실패로 취급
+    } catch (err) {
+      const reason = err instanceof Error && err.name === "TimeoutError" ? `${REQUEST_TIMEOUT_MS}ms 타임아웃` : String(err);
+      this.logger.warn(`Ravelry 요청 실패 (${endpoint}): ${reason}`);
       return null;
+    }
+  }
+
+  private logFailedResponse(endpoint: string, status: number) {
+    if (status === 401 || status === 403) {
+      this.logger.error(`Ravelry 인증 실패 ${status} (${endpoint}) - RAVELRY_API_KEY/SECRET 만료 또는 권한 확인 필요`);
+    } else if (status === 429) {
+      this.logger.warn(`Ravelry 요청 한도 초과 429 (${endpoint})`);
+    } else if (status === 404) {
+      // 상세 조회에서 삭제/비공개된 항목은 정상적으로 일어나는 일이라 로그를 남기지 않는다
+    } else {
+      this.logger.warn(`Ravelry 응답 오류 ${status} (${endpoint})`);
     }
   }
 }
