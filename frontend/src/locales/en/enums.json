@@ -30,5 +30,9 @@
   "gaugeChip": {
     "MATCH": "Gauge match",
     "DIFFERENT": "Gauge mismatch"
+  },
+  "sizeCoverage": {
+    "ALL_SIZES": "All sizes",
+    "SMALLER_SIZES": "Smaller sizes only"
   }
 }

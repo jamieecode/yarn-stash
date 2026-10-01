@@ -148,6 +148,28 @@ describe("YarnService", () => {
       expect(prisma.pattern.findMany).toHaveBeenCalledWith({ where: { weightCategory: "WORSTED" } });
     });
 
+    it("flags whether a sized pattern's largest size is covered, based on the available amount", async () => {
+      prisma.yarn.findFirst.mockResolvedValue({
+        id: "yarn-1",
+        userId: "user-1",
+        consumed: false,
+        weightCategory: "WORSTED",
+        gaugeStitches: null,
+        batches: [{ dyeLot: null, skeinCount: 4, lengthPerSkeinM: 100 }], // 400m held
+        usages: [{ reservedM: 100, usedM: null, project: { status: "IN_PROGRESS" } }], // 300m free
+      });
+      prisma.pattern.findMany.mockResolvedValue([
+        { id: "all-sizes", requiredMinM: 200, requiredMaxM: 300, gaugeStitches: null },
+        { id: "smaller-only", requiredMinM: 200, requiredMaxM: 350, gaugeStitches: null }, // 400m 총량으론 되지만 가용량 300m로는 안 됨
+        { id: "single-size", requiredMinM: 200, requiredMaxM: null, gaugeStitches: null },
+      ]);
+
+      const result = await service.findPatternMatches("user-1", "yarn-1");
+      const coverage = Object.fromEntries(result.map((r) => [r.pattern.id, r.sizeCoverage]));
+
+      expect(coverage).toEqual({ "all-sizes": "ALL_SIZES", "smaller-only": "SMALLER_SIZES", "single-size": null });
+    });
+
     // 이 기능의 핵심 - 다른 프로젝트가 잡아둔 실은 그만큼 빼고 매칭해야 "충분함"이 거짓말이 되지 않음
     it("matches on the available amount, not the total held, when another project already reserved the yarn", async () => {
       prisma.yarn.findFirst.mockResolvedValue({

@@ -6,6 +6,7 @@ import {
   gaugeChip,
   needsLotMixing,
   scaleBatchesToAvailable,
+  sizeCoverage,
   totalMeters,
   yardageLabel,
   yardageRatioPercent,
@@ -179,6 +180,7 @@ export class YarnService {
           ratioPercent,
           label: yardageLabel(ratioPercent),
           gaugeChip: gaugeChip(yarn.gaugeStitches, pattern.gaugeStitches),
+          sizeCoverage: sizeCoverage(yarn.availableM, pattern.requiredMinM, pattern.requiredMaxM),
           needsLotMixing: needsLotMixing(availableBatches, pattern.requiredMinM),
         };
       })

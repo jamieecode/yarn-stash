@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { TopBar } from "../../components/layout/TopBar";
 import { MatchTierChip } from "../../components/ui/MatchTierChip";
+import { SizeCoverageChip } from "../../components/ui/SizeCoverageChip";
 import { usePatternQuery, usePatternYarnMatchesQuery } from "../../api/usePatterns";
 import { useStartOrResumeProjectMutation } from "../../api/useProjects";
 
@@ -76,6 +77,11 @@ export function ProjectStartPage() {
                     })
                   : t("pattern:projectStart.available", { available: Math.round(m.yarn.availableM) })}
               </div>
+              {m.sizeCoverage && (
+                <div className="mt-1.5 flex">
+                  <SizeCoverageChip coverage={m.sizeCoverage} />
+                </div>
+              )}
             </button>
           ))}
         </div>

@@ -60,6 +60,18 @@ export function gaugeChip(yarnGauge?: number | null, patternGauge?: number | nul
   return Math.abs(yarnGauge - patternGauge) <= 1 ? "MATCH" : "DIFFERENT";
 }
 
+// 사이즈 범위 보조 칩 - 4단계 칩은 가장 작은 사이즈(requiredMinM) 기준이라, 범위형 도안에서 큰 사이즈까지 되는지는
+// 따로 알려준다. 범위가 없거나(단일 사이즈) 최소 사이즈조차 부족하면(이미 INSUFFICIENT로 보임) 칩을 띄우지 않는다
+export function sizeCoverage(
+  availableM: number,
+  requiredMinM: number,
+  requiredMaxM?: number | null,
+): "ALL_SIZES" | "SMALLER_SIZES" | null {
+  if (requiredMaxM == null || requiredMaxM <= requiredMinM) return null;
+  if (availableM < requiredMinM) return null;
+  return availableM >= requiredMaxM ? "ALL_SIZES" : "SMALLER_SIZES";
+}
+
 // 로트 보조 안내 - 합계는 충분한데 최대 단일 로트만으로는 부족한 경우 true (dyeLot이 없는 배치는 하나의 그룹으로 합산)
 export function needsLotMixing(batches: BatchLike[], requiredMinM: number): boolean {
   const total = totalMeters(batches);

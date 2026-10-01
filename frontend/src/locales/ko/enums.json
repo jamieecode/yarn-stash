@@ -30,5 +30,9 @@
   "gaugeChip": {
     "MATCH": "게이지 일치",
     "DIFFERENT": "게이지 불일치"
+  },
+  "sizeCoverage": {
+    "ALL_SIZES": "모든 사이즈 가능",
+    "SMALLER_SIZES": "작은 사이즈만 가능"
   }
 }

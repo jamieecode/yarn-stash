@@ -4,6 +4,7 @@ import {
   gaugeChip,
   needsLotMixing,
   scaleBatchesToAvailable,
+  sizeCoverage,
   totalMeters,
   yardageLabel,
   yardageRatioPercent,
@@ -81,6 +82,28 @@ describe("matching.util", () => {
     it("returns DIFFERENT when outside +-1 stitch tolerance", () => {
       expect(gaugeChip(18, 20)).toBe("DIFFERENT");
       expect(gaugeChip(22, 18)).toBe("DIFFERENT");
+    });
+  });
+
+  describe("sizeCoverage", () => {
+    it("returns null for single-size patterns (no max, or max not above min)", () => {
+      expect(sizeCoverage(1000, 500, null)).toBeNull();
+      expect(sizeCoverage(1000, 500, undefined)).toBeNull();
+      expect(sizeCoverage(1000, 500, 500)).toBeNull();
+    });
+
+    it("returns null when even the smallest size is short (already shown as INSUFFICIENT)", () => {
+      expect(sizeCoverage(499, 500, 900)).toBeNull();
+    });
+
+    it("returns ALL_SIZES when the available amount covers the largest size", () => {
+      expect(sizeCoverage(900, 500, 900)).toBe("ALL_SIZES");
+      expect(sizeCoverage(1200, 500, 900)).toBe("ALL_SIZES");
+    });
+
+    it("returns SMALLER_SIZES when it covers the smallest but not the largest size", () => {
+      expect(sizeCoverage(500, 500, 900)).toBe("SMALLER_SIZES");
+      expect(sizeCoverage(899, 500, 900)).toBe("SMALLER_SIZES");
     });
   });
 

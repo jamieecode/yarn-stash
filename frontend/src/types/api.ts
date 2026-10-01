@@ -215,6 +215,8 @@ export interface Project {
 
 export type YardageLabel = "AMPLE" | "SUFFICIENT" | "TIGHT" | "INSUFFICIENT";
 export type GaugeChip = "MATCH" | "DIFFERENT" | null;
+// 범위형 도안에서 가장 큰 사이즈까지 되는지 - 단일 사이즈이거나 최소 사이즈도 부족하면 null
+export type SizeCoverage = "ALL_SIZES" | "SMALLER_SIZES" | null;
 
 // GET /yarns/:id/pattern-matches 응답 항목
 export interface YarnPatternMatch {
@@ -222,6 +224,7 @@ export interface YarnPatternMatch {
   ratioPercent: number;
   label: YardageLabel;
   gaugeChip: GaugeChip;
+  sizeCoverage: SizeCoverage;
   needsLotMixing: boolean;
 }
 
@@ -231,6 +234,7 @@ export interface PatternYarnMatch {
   ratioPercent: number;
   label: YardageLabel;
   gaugeChip: GaugeChip;
+  sizeCoverage: SizeCoverage;
   needsLotMixing: boolean;
 }
 

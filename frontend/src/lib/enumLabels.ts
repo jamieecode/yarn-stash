@@ -1,4 +1,4 @@
-import type { CraftType, GaugeChip, ProjectStatus, WeightCategory, YardageLabel } from "../types/api";
+import type { CraftType, GaugeChip, ProjectStatus, SizeCoverage, WeightCategory, YardageLabel } from "../types/api";
 
 type T = (key: string) => string;
 
@@ -39,6 +39,11 @@ const GAUGE_CHIP_KEYS: Record<Exclude<GaugeChip, null>, string> = {
   DIFFERENT: "enums:gaugeChip.DIFFERENT",
 };
 
+const SIZE_COVERAGE_KEYS: Record<Exclude<SizeCoverage, null>, string> = {
+  ALL_SIZES: "enums:sizeCoverage.ALL_SIZES",
+  SMALLER_SIZES: "enums:sizeCoverage.SMALLER_SIZES",
+};
+
 export function weightCategoryLabel(t: T, category: WeightCategory): string {
   return t(WEIGHT_CATEGORY_KEYS[category]);
 }
@@ -65,4 +70,8 @@ export function yardageLabel(t: T, label: YardageLabel): string {
 
 export function gaugeChipLabel(t: T, chip: Exclude<GaugeChip, null>): string {
   return t(GAUGE_CHIP_KEYS[chip]);
+}
+
+export function sizeCoverageLabel(t: T, coverage: Exclude<SizeCoverage, null>): string {
+  return t(SIZE_COVERAGE_KEYS[coverage]);
 }

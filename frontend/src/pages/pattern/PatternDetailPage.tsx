@@ -6,6 +6,7 @@ import { TopBar } from "../../components/layout/TopBar";
 import { WeightBadge } from "../../components/ui/WeightBadge";
 import { CraftBadge } from "../../components/ui/CraftBadge";
 import { MatchTierChip } from "../../components/ui/MatchTierChip";
+import { SizeCoverageChip } from "../../components/ui/SizeCoverageChip";
 import { GaugeChipDisplay } from "../../components/ui/GaugeChipDisplay";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -183,6 +184,7 @@ export function PatternDetailPage() {
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <GaugeChipDisplay chip={m.gaugeChip} />
+                  <SizeCoverageChip coverage={m.sizeCoverage} />
                 </div>
                 {/* 매칭 판정 자체가 가용량 기준이므로, 일부가 묶여 있으면 그 사실을 같이 보여줘야 납득이 됨 */}
                 {m.yarn.committedM > 0 && (

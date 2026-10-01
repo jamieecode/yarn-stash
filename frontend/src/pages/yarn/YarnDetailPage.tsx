@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { TopBar } from "../../components/layout/TopBar";
 import { WeightBadge } from "../../components/ui/WeightBadge";
 import { MatchTierChip } from "../../components/ui/MatchTierChip";
+import { SizeCoverageChip } from "../../components/ui/SizeCoverageChip";
 import { GaugeChipDisplay } from "../../components/ui/GaugeChipDisplay";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -181,6 +182,7 @@ export function YarnDetailPage() {
                         : t("yarn:detail.matchRequiredMin", { min: m.pattern.requiredMinM })}
                     </span>
                     <GaugeChipDisplay chip={m.gaugeChip} />
+                    <SizeCoverageChip coverage={m.sizeCoverage} />
                   </div>
                   {m.needsLotMixing && <p className="mt-1 text-xs text-warn">{t("yarn:detail.needsLotMixing")}</p>}
                 </button>
