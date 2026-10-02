@@ -4,12 +4,14 @@ import { AuthGuard } from "../common/guards/auth.guard";
 import { OptionalAuthGuard } from "../common/guards/optional-auth.guard";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { UpdateNicknameDto } from "./dto/update-nickname.dto";
+import { ThrottleGuestCreation } from "../common/throttle";
 
 // 화면설계서 0-1(시작 화면), 8(마이 탭)에서 호출하는 엔드포인트
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ThrottleGuestCreation()
   @Post("guest")
   createGuest() {
     return this.authService.createGuest();

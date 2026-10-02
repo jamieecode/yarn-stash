@@ -36,6 +36,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
 
   if (!res.ok) {
+    // 요청 한도 초과는 서버 문구(한국어 고정) 대신 현재 언어로 안내
+    if (res.status === 429) throw new ApiError(429, i18n.t("common:error.tooManyRequests"));
     const body = await res.json().catch(() => null);
     throw new ApiError(res.status, body?.message ?? i18n.t("common:error.requestFailed", { status: res.status }));
   }

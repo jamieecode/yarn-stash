@@ -473,4 +473,21 @@ describe("App e2e", () => {
       await request(app.getHttpServer()).get("/api/dashboard").expect(401);
     });
   });
+
+  // 게스트 생성 한도를 다 써버리므로 반드시 파일 맨 마지막에 둘 것 (카운터는 앱 인스턴스 메모리에 있어 다음 테스트에 남음)
+  describe("요청 한도", () => {
+    it("게스트 생성은 IP당 시간당 20회를 넘으면 429, health는 한도와 무관", async () => {
+      // 앞선 테스트들이 이미 몇 번 써서 남은 횟수는 모르므로, 한도+1번 안에 429가 나오는지만 본다
+      let throttled: request.Response | undefined;
+      for (let i = 0; i <= 20 && !throttled; i++) {
+        const res = await request(app.getHttpServer()).post("/api/auth/guest");
+        if (res.status === 429) throttled = res;
+        else expect(res.status).toBe(201);
+      }
+
+      expect(throttled?.body.message).toContain("요청이 너무 많아요");
+      expect(throttled?.headers["retry-after"]).toBeDefined();
+      await request(app.getHttpServer()).get("/api/health").expect(200);
+    });
+  });
 });

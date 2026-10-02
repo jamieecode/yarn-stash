@@ -5,6 +5,7 @@ import { UpdatePatternDto } from "./dto/update-pattern.dto";
 import { AuthGuard } from "../common/guards/auth.guard";
 import { OptionalAuthGuard } from "../common/guards/optional-auth.guard";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
+import { ThrottleRavelryDetail, ThrottleRavelrySearch } from "../common/throttle";
 
 @Controller("patterns")
 export class PatternController {
@@ -31,6 +32,7 @@ export class PatternController {
     });
   }
 
+  @ThrottleRavelrySearch()
   @UseGuards(OptionalAuthGuard)
   @Get("search")
   search(@Query("q") q: string, @CurrentUser() user?: { userId: string }) {
@@ -38,6 +40,7 @@ export class PatternController {
   }
 
   // Ravelry 검색 결과를 클릭했을 때 등록 폼을 자동으로 채우기 위한 상세 조회
+  @ThrottleRavelryDetail()
   @UseGuards(OptionalAuthGuard)
   @Get("ravelry/:ravelryId")
   getRavelryDetail(@Param("ravelryId") ravelryId: string) {

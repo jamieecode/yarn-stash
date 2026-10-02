@@ -36,33 +36,36 @@
 
 ## 2. 배포 전 품질 점검
 
-- [ ] 백엔드 타입 체크: `cd backend && npx tsc --noEmit` — CI에도 없고 정기적으로 실행되지 않음
-- [ ] 프론트엔드 빌드 확인: `cd frontend && npm run build` (이미 `tsc -b && vite build` 구성이라 타입 에러가 있으면 빌드 자체가 실패함 — 배포 직전 한 번 실행해서 확인)
-- [ ] 프론트엔드 lint: `npm run lint` (oxlint) — 백엔드는 lint 스크립트 자체가 없음, 필요하면 eslint 설정 추가 고려
+- [x] 백엔드 타입 체크 — CI(`ci.yml` backend 잡)에서 `npx tsc --noEmit`로 매 푸시마다 실행
+- [x] 프론트엔드 빌드 확인 — CI(`ci.yml` frontend 잡)에서 `npm run build`(`tsc -b && vite build`)로 매 푸시마다 실행
+- [x] 프론트엔드 lint — CI에서 `npm run lint`(oxlint) 실행
+- [x] 번역 키 일치 검사 — ✅ 완료 (2026-10-02). CI frontend 잡에 `npm run check-i18n` 추가 (스크립트가 `--experimental-strip-types`를 써서 frontend 잡만 Node 22로 올림)
+- [ ] 백엔드 lint — lint 스크립트 자체가 없음, 필요하면 eslint 설정 추가 고려
 - [x] e2e 테스트 추가 — ✅ 완료 (2026-08-04). 로컬 Docker Postgres(`backend/docker-compose.test.yml`, `localhost:5433`, 개발용 Neon DB와 분리)를 대상으로 `backend/test/app.e2e-spec.ts` 작성, `npm run test:e2e`로 실행. 아래 3개 플로우 컨트롤러→가드→Prisma 전체 경로로 검증, 4개 테스트 전부 통과
   - 게스트 생성 → 로그인 → 실 등록 → 도안 매칭 조회
   - 게스트 → 소셜 계정 병합(카카오, `mergeGuestInto`) — `global.fetch`를 스텁으로 대체해 실제 카카오 서버 호출 없이 검증
   - 도안 삭제 제약 조건(연결된 프로젝트 있을 때 403 거부)
   - 사용법은 `backend/README.md`의 "e2e 테스트" 섹션 참고
 - [ ] 프론트엔드는 테스트 프레임워크 자체가 구성되어 있지 않음(`frontend/package.json`에 `test` 스크립트 없음) — 최소 스모크 테스트라도 추가할지 결정 필요
-- [x] Ravelry 오류 로깅 — ✅ 완료 (2026-10-01). `ravelry.service.ts`의 `get()`이 실패 원인별로 로그를 남김: 401/403은 error(크리덴셜 점검 필요), 429/5xx/네트워크 오류/8초 타임아웃은 warn, 상세 조회 404는 정상 케이스라 로그 없음. 키가 비어 있으면 기동 시 한 번 경고. 
+- [x] Ravelry 오류 로깅 — ✅ 완료 (2026-10-01). `ravelry.service.ts`의 `get()`이 실패 원인별로 로그를 남김: 401/403은 error(크리덴셜 점검 필요), 429/5xx/네트워크 오류/8초 타임아웃은 warn, 상세 조회 404는 정상 케이스라 로그 없음. 키가 비어 있으면 기동 시 한 번 경고.
 - [x] Ravelry 장애 안내 — ✅ 완료 (2026-10-02). 404 외 실패는 `RavelryUnavailableError`(503)로 구분. 검색(`/patterns/search`, `/yarn-catalog/search`)은 로컬 결과를 그대로 주되 응답을 `{ items, ravelryUnavailable }`로 바꿔 화면에 "Ravelry 검색 일시 불가" 안내를 띄우고, 상세 조회(등록 폼 자동 채움/카탈로그 확정)는 503으로 응답해 오류 문구를 표시. 프론트는 예전 배열 응답도 받아주므로(`lib/ravelry.ts`) 배포 순서와 무관
 - [x] 프론트 에러 바운더리 — ✅ 완료 (2026-10-02). 렌더링 중 예외가 나도 앱 전체가 빈 화면이 되지 않도록 레이아웃의 `<Outlet />`과 최상위 라우트를 `components/ErrorBoundary.tsx`로 감쌈. 하단 탭바는 바운더리 밖이라 다른 탭으로 이동 가능하고, 경로가 바뀌면 에러 상태가 자동으로 풀림
 
 ## 3. 인프라/운영 — ✅ 배포 완료 (2026-08-05)
 
-- [x] CI 파이프라인 구성 — `.github/workflows/ci.yml` 추가, backend(타입체크/유닛/e2e)·frontend(lint/build) 두 잡 모두 그린 확인
+- [x] CI 파이프라인 구성 — `.github/workflows/ci.yml` 추가, backend(타입체크/유닛/e2e)·frontend(lint/check-i18n/build) 두 잡 모두 그린 확인
 - [x] 배포 대상 결정 및 셋업 — 백엔드: Render(Public Git Repository 방식, `start:prod` 스크립트 경로 버그 수정 후 배포 성공), 프론트엔드: Vercel(Vite 프리셋, Root Directory=`frontend`), DB: Neon(기존 개발용과 동일 인스턴스 공유)
   - Vercel SPA 라우팅: `frontend/vercel.json`에 catch-all rewrite 추가 안 하면 `/auth/*/callback` 같은 직접 진입 경로가 404 남 — 추가 후 확인
 - [x] CORS/환경변수 점검 — Render `FRONTEND_ORIGIN`, Vercel `VITE_API_BASE_URL` 배포 도메인 기준으로 설정, 카카오/구글 콘솔 + Render + Vercel 4곳 모두 Redirect URI 동기화 완료
 - [x] 프로덕션에서 카카오/구글 로그인 실제 end-to-end 검증 완료 (마이페이지에서 닉네임 정상 표시 확인), 테스트 중 생성된 소셜 계정 2개는 정리 완료
+- [x] 요청 한도(rate limiting) — ✅ 완료 (2026-10-02). `@nestjs/throttler` 전역 가드, IP 기준 메모리 카운터(`common/throttle.ts`). 기본 분당 120회, 게스트 생성 시간당 20회, Ravelry 검색 분당 60회, Ravelry 상세/카탈로그 확정 분당 30회, `/api/health`는 제외. Render 프록시 뒤라 `trust proxy`를 켜서 X-Forwarded-For 기준으로 구분(헤더 위조로 우회는 가능하지만 다른 사용자가 같이 막히지는 않음). 프론트는 429를 번역된 문구로 보여주고 4xx는 재시도하지 않음
 - [ ] 방치된 게스트 계정 정리 배치 — 기획서 2.9에서 1단계 스코프 제외로 명시됨. 실사용 데이터 쌓인 뒤 필요성 확인되면 그때 작업 (지금 당장 우선순위 아님)
-- [x] Render 무료 플랜 슬립(15분 미사용 시 인스턴스 정지) 대응 — `GET /api/health`(`app.controller.ts`) 추가 + `.github/workflows/keep-alive.yml`에서 10분 간격 GitHub Actions cron으로 핑. e2e 테스트(`app.e2e-spec.ts`)로 200/`{status:"ok"}` 응답 검증 완료. 단, GitHub Actions 스케줄은 저장소 활동이 적으면 지연될 수 있어 완전한 보장은 아님 — 콜드스타트가 계속 발생하면 UptimeRobot 등 외부 핑 서비스로 교체 고려
+- [x] Render 무료 플랜 슬립(15분 미사용 시 인스턴스 정지) 대응 — `GET /api/health`(`app.controller.ts`) 추가, e2e 테스트(`app.e2e-spec.ts`)로 200/`{status:"ok"}` 응답 검증. 처음엔 GitHub Actions cron(`keep-alive.yml`, 10분 간격)으로 핑했으나 실행이 몇 시간씩 밀려 효과가 없어서 워크플로를 삭제하고(커밋 `43aaa79`) UptimeRobot 5분 간격 핑으로 교체
 
 ## 4. 포트폴리오/공개 저장소 보완
 
-- [ ] README(한/영 4개 파일 전부)에 실행 스크린샷 또는 GIF 추가 — 매칭 화면, 프로젝트 트래커 화면 위주로 추천
-- [ ] (배포 완료 시) 라이브 데모 링크를 루트 README 상단에 추가
+- [x] 루트 README(한/영)에 스크린샷 추가 — `docs/screenshots/`의 홈/실 목록/도안 목록/프로젝트 상세 4장
+- [x] 라이브 데모 링크를 루트 README 상단에 추가
 - [ ] GitHub 저장소 설정에서 Description/Topics 채우기 (public 전환 직후라 아직 비어있을 가능성)
 
 ## 5. 2단계 기능 (보류, 지금 당장 필요 없음)
