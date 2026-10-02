@@ -150,7 +150,14 @@ export interface PatternPage {
   nextCursor: string | null;
 }
 
-// GET /patterns/search 응답
+// GET /patterns/search, /yarn-catalog/search 응답 - ravelryUnavailable은 Ravelry 폴백을 시도했다가 실패한 경우 true
+// (로컬 결과는 그대로 옴). 예전 백엔드는 배열만 내려줬으므로 훅에서 normalizeSearchResponse로 맞춘다
+export interface SearchResponse<T> {
+  items: T[];
+  ravelryUnavailable: boolean;
+}
+
+// GET /patterns/search 응답 항목
 export type PatternSearchResult =
   | ({ source: "LOCAL" } & Pattern)
   | ({ source: "RAVELRY"; ravelryId: number; name: string; designer?: string; thumbnailUrl?: string });

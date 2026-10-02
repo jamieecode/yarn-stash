@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { usePatternSearchQuery } from "../../api/usePatterns";
 import { api } from "../../lib/apiClient";
+import { ravelryErrorMessage } from "../../lib/ravelry";
+import { RavelryUnavailableNotice } from "../ui/RavelryUnavailableNotice";
 import type { PatternSearchResult, RavelryPatternDetail } from "../../types/api";
 
 interface PatternSearchAutocompleteProps {
@@ -17,10 +19,13 @@ export function PatternSearchAutocomplete({ query, onQueryChange, onSelectLocal,
   const { t } = useTranslation("pattern");
   const [isOpen, setIsOpen] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
+  const [pickError, setPickError] = useState<string | null>(null);
   const debouncedQuery = useDebouncedValue(query, 300);
-  const { data: results } = usePatternSearchQuery(debouncedQuery);
+  const { data } = usePatternSearchQuery(debouncedQuery);
+  const results = data?.items;
 
   async function handlePick(result: PatternSearchResult) {
+    setPickError(null);
     if (result.source === "LOCAL") {
       onSelectLocal(result.id);
     } else {
@@ -28,6 +33,8 @@ export function PatternSearchAutocomplete({ query, onQueryChange, onSelectLocal,
       try {
         const detail = await api.get<RavelryPatternDetail>(`/patterns/ravelry/${result.ravelryId}`);
         onSelectRavelry(detail);
+      } catch (err) {
+        setPickError(ravelryErrorMessage(t, err));
       } finally {
         setIsResolving(false);
       }
@@ -49,6 +56,8 @@ export function PatternSearchAutocomplete({ query, onQueryChange, onSelectLocal,
         className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-text outline-none focus:border-accent"
       />
       {isResolving && <p className="mt-1 text-xs text-muted">{t("searchAutocomplete.resolvingRavelry")}</p>}
+      {pickError && <p className="mt-1 text-xs text-danger">{pickError}</p>}
+      {data?.ravelryUnavailable && <RavelryUnavailableNotice className="mt-1" />}
       {isOpen && Boolean(results?.length) && (
         <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
           {results!.map((r) => (

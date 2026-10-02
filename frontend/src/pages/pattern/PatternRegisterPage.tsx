@@ -6,6 +6,7 @@ import { PatternSearchAutocomplete } from "../../components/pattern/PatternSearc
 import { YarnCatalogAutocomplete } from "../../components/yarn/YarnCatalogAutocomplete";
 import { useCreatePatternMutation, useRavelryPatternDetailQuery } from "../../api/usePatterns";
 import { useAuth } from "../../auth/AuthContext";
+import { ravelryErrorMessage } from "../../lib/ravelry";
 import {
   CRAFT_TYPE_ORDER,
   WEIGHT_CATEGORY_ORDER,
@@ -29,7 +30,7 @@ export function PatternRegisterPage() {
   const [autoFilledFromRavelry, setAutoFilledFromRavelry] = useState(false);
   const [ravelryId, setRavelryId] = useState<number | undefined>(initialRavelryId ? Number(initialRavelryId) : undefined);
 
-  const { data: ravelryDetail } = useRavelryPatternDetailQuery(initialRavelryId ? Number(initialRavelryId) : undefined);
+  const { data: ravelryDetail, error: ravelryDetailError } = useRavelryPatternDetailQuery(initialRavelryId ? Number(initialRavelryId) : undefined);
 
   const [name, setName] = useState("");
   const [designer, setDesigner] = useState("");
@@ -126,6 +127,8 @@ export function PatternRegisterPage() {
           </section>
         )}
         {autoFilledFromRavelry && <p className="mt-1.5 text-xs text-sub">{t("pattern:register.autoFilledFromRavelry")}</p>}
+        {/* 자동 채움에 실패해도 직접 입력해서 등록할 수 있으니 폼은 그대로 두고 이유만 알린다 */}
+        {ravelryDetailError && <p className="mt-1.5 text-xs text-danger">{ravelryErrorMessage(t, ravelryDetailError)}</p>}
 
         {isGuest ? (
           <div className="mt-6 rounded-xl border border-border bg-card p-4 text-center">

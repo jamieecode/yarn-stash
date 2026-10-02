@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit, ServiceUnavailableException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { WeightCategory } from "@prisma/client";
 import { YD_TO_M } from "../common/units.util";
@@ -53,6 +53,14 @@ export interface RavelryPatternDetail extends RavelrySearchPattern {
 
 // Ravelry가 응답 없이 매달리면 검색 화면 전체가 같이 멈추므로 상한을 둔다
 const REQUEST_TIMEOUT_MS = 8000;
+
+// Ravelry 호출 자체가 실패한 경우(인증/한도/5xx/네트워크/타임아웃). "결과 없음"과 구분하기 위해 던진다.
+// 상세 조회 엔드포인트에서는 그대로 503으로 나가고, 검색은 호출부에서 잡아 로컬 결과 + ravelryUnavailable 플래그로 응답한다
+export class RavelryUnavailableError extends ServiceUnavailableException {
+  constructor() {
+    super("Ravelry에 일시적으로 연결할 수 없어요. 잠시 후 다시 시도해 주세요");
+  }
+}
 
 @Injectable()
 export class RavelryService implements OnModuleInit {
@@ -185,8 +193,8 @@ export class RavelryService implements OnModuleInit {
     };
   }
 
-  // Ravelry 장애/네트워크 오류가 우리 서비스 전체를 막으면 안 되므로 실패는 여전히 null(폴백 실패)로 돌려주지만,
-  // 크리덴셜 만료/오발급까지 "결과 없음"으로 묻히지 않도록 원인별로 로그를 남긴다
+  // 404(삭제/비공개 항목)만 null로 돌려주고, 나머지 실패는 원인별로 로그를 남긴 뒤 RavelryUnavailableError를 던진다.
+  // 크리덴셜 만료/장애가 "결과 없음"으로 묻히지 않게 하려는 것 - 서비스 전체를 막지 않는 건 호출부(검색 폴백)가 책임진다
   private async get(path: string): Promise<unknown | null> {
     const key = this.config.get<string>("RAVELRY_API_KEY") ?? "";
     const secret = this.config.get<string>("RAVELRY_API_SECRET") ?? "";
@@ -194,20 +202,29 @@ export class RavelryService implements OnModuleInit {
     // 검색어는 사용자 입력이라 로그에는 경로만 남긴다
     const endpoint = path.split("?")[0];
 
+    let res: Response;
     try {
-      const res = await fetch(`${RAVELRY_BASE_URL}${path}`, {
+      res = await fetch(`${RAVELRY_BASE_URL}${path}`, {
         headers: { Authorization: auth },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
-      if (!res.ok) {
-        this.logFailedResponse(endpoint, res.status);
-        return null;
-      }
-      return await res.json();
     } catch (err) {
       const reason = err instanceof Error && err.name === "TimeoutError" ? `${REQUEST_TIMEOUT_MS}ms 타임아웃` : String(err);
       this.logger.warn(`Ravelry 요청 실패 (${endpoint}): ${reason}`);
-      return null;
+      throw new RavelryUnavailableError();
+    }
+
+    // 상세 조회에서 삭제/비공개된 항목은 정상적으로 일어나는 일이라 로그 없이 "없음"으로 처리
+    if (res.status === 404) return null;
+    if (!res.ok) {
+      this.logFailedResponse(endpoint, res.status);
+      throw new RavelryUnavailableError();
+    }
+    try {
+      return await res.json();
+    } catch {
+      this.logger.warn(`Ravelry 응답 파싱 실패 (${endpoint})`);
+      throw new RavelryUnavailableError();
     }
   }
 
@@ -216,8 +233,6 @@ export class RavelryService implements OnModuleInit {
       this.logger.error(`Ravelry 인증 실패 ${status} (${endpoint}) - RAVELRY_API_KEY/SECRET 만료 또는 권한 확인 필요`);
     } else if (status === 429) {
       this.logger.warn(`Ravelry 요청 한도 초과 429 (${endpoint})`);
-    } else if (status === 404) {
-      // 상세 조회에서 삭제/비공개된 항목은 정상적으로 일어나는 일이라 로그를 남기지 않는다
     } else {
       this.logger.warn(`Ravelry 응답 오류 ${status} (${endpoint})`);
     }

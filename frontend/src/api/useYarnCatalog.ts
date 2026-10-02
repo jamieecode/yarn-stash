@@ -1,12 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/apiClient";
-import type { YarnCatalog, YarnCatalogSearchResult } from "../types/api";
+import { normalizeSearchResponse } from "../lib/ravelry";
+import type { SearchResponse, YarnCatalog, YarnCatalogSearchResult } from "../types/api";
 
 // 화면설계서 2번 - 브랜드/라인명 자동완성. 로컬 우선 + Ravelry 폴백이 병합된 결과를 그대로 받는다
 export function useYarnCatalogSearchQuery(query: string) {
   return useQuery({
     queryKey: ["yarn-catalog", "search", query],
-    queryFn: () => api.get<YarnCatalogSearchResult[]>(`/yarn-catalog/search?q=${encodeURIComponent(query)}`),
+    queryFn: async () =>
+      normalizeSearchResponse(
+        await api.get<SearchResponse<YarnCatalogSearchResult> | YarnCatalogSearchResult[]>(
+          `/yarn-catalog/search?q=${encodeURIComponent(query)}`,
+        ),
+      ),
     enabled: query.trim().length > 0,
   });
 }

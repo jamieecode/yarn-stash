@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { usePatternSearchQuery, usePatternsInfiniteQuery } from "../../api/usePatterns";
 import { PatternCard } from "../../components/pattern/PatternCard";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { RavelryUnavailableNotice } from "../../components/ui/RavelryUnavailableNotice";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { CRAFT_TYPE_ORDER, type CraftType } from "../../types/api";
 import { craftTypeLabel } from "../../lib/enumLabels";
@@ -46,7 +47,7 @@ export function PatternListPage() {
   }, [isSearching, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const isEmpty = isSearching
-    ? (searchQuery.data?.length ?? 0) === 0 && !searchQuery.isLoading
+    ? (searchQuery.data?.items.length ?? 0) === 0 && !searchQuery.isLoading
     : patterns.length === 0 && !listQuery.isLoading;
 
   return (
@@ -88,10 +89,12 @@ export function PatternListPage() {
           ? searchQuery.isLoading && <p className="py-10 text-center text-sm text-muted">{t("pattern:list.searching")}</p>
           : listQuery.isLoading && <p className="py-10 text-center text-sm text-muted">{t("common:loading")}</p>}
 
+        {isSearching && searchQuery.data?.ravelryUnavailable && <RavelryUnavailableNotice className="mb-3" />}
+
         {!isEmpty && (
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
             {isSearching
-              ? searchQuery.data?.map((r) =>
+              ? searchQuery.data?.items.map((r) =>
                   r.source === "LOCAL" ? (
                     <PatternCard key={r.id} pattern={r} isBookmarked={Boolean(r.isBookmarked)} onOpen={() => navigate(`/patterns/${r.id}`)} />
                   ) : (

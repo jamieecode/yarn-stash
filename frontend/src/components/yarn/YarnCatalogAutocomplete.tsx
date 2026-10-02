@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { useResolveRavelryYarnMutation, useYarnCatalogSearchQuery } from "../../api/useYarnCatalog";
+import { ravelryErrorMessage } from "../../lib/ravelry";
+import { RavelryUnavailableNotice } from "../ui/RavelryUnavailableNotice";
 import type { YarnCatalog } from "../../types/api";
 
 interface YarnCatalogAutocompleteProps {
@@ -15,15 +17,21 @@ export function YarnCatalogAutocomplete({ query, onQueryChange, onSelect }: Yarn
   const { t } = useTranslation("yarn");
   const [isOpen, setIsOpen] = useState(false);
   const debouncedQuery = useDebouncedValue(query, 300);
-  const { data: results } = useYarnCatalogSearchQuery(debouncedQuery);
+  const { data } = useYarnCatalogSearchQuery(debouncedQuery);
+  const results = data?.items;
   const resolveRavelry = useResolveRavelryYarnMutation();
 
   async function handlePick(result: NonNullable<typeof results>[number]) {
+    resolveRavelry.reset();
     if (result.source === "LOCAL") {
       onSelect(result);
     } else {
-      const resolved = await resolveRavelry.mutateAsync(result.ravelryId);
-      onSelect(resolved);
+      try {
+        const resolved = await resolveRavelry.mutateAsync(result.ravelryId);
+        onSelect(resolved);
+      } catch {
+        // 오류 문구는 resolveRavelry.error로 아래에 표시
+      }
     }
     setIsOpen(false);
   }
@@ -41,6 +49,8 @@ export function YarnCatalogAutocomplete({ query, onQueryChange, onSelect }: Yarn
         placeholder={t("catalog.placeholder")}
         className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-text outline-none focus:border-accent"
       />
+      {resolveRavelry.error && <p className="mt-1 text-xs text-danger">{ravelryErrorMessage(t, resolveRavelry.error)}</p>}
+      {data?.ravelryUnavailable && <RavelryUnavailableNotice className="mt-1" />}
       {isOpen && Boolean(results?.length) && (
         <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
           {results!.map((r) => (

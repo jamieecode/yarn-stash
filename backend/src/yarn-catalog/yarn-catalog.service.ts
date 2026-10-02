@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { CatalogSource } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
-import { RavelryService } from "../ravelry/ravelry.service";
+import { RavelryService, RavelryUnavailableError } from "../ravelry/ravelry.service";
 
 @Injectable()
 export class YarnCatalogService {
@@ -11,8 +11,9 @@ export class YarnCatalogService {
   ) {}
 
   // 화면설계서 2번(실 등록) 자동완성 - 우리 DB 우선 조회, 결과가 적으면 Ravelry 검색 결과를 병합(출처 라벨 포함)
+  // ravelryUnavailable: Ravelry 폴백을 시도했는데 실패한 경우 true - 화면에서 "외부 검색 일시 불가"를 안내하는 용도
   async search(query: string) {
-    if (!query?.trim()) return [];
+    if (!query?.trim()) return { items: [], ravelryUnavailable: false };
 
     const local = await this.prisma.yarnCatalog.findMany({
       where: {
@@ -24,14 +25,22 @@ export class YarnCatalogService {
       take: 20,
     });
     const localResults = local.map((c) => ({ source: "LOCAL" as const, ...c }));
-    if (local.length >= 20) return localResults;
+    if (local.length >= 20) return { items: localResults, ravelryUnavailable: false };
+
+    let ravelryHits: Awaited<ReturnType<RavelryService["searchYarns"]>>;
+    try {
+      ravelryHits = await this.ravelry.searchYarns(query);
+    } catch (err) {
+      if (err instanceof RavelryUnavailableError) return { items: localResults, ravelryUnavailable: true };
+      throw err;
+    }
 
     const cachedRavelryIds = new Set(local.map((c) => c.ravelryId).filter((id): id is number => id != null));
-    const ravelryResults = (await this.ravelry.searchYarns(query))
+    const ravelryResults = ravelryHits
       .filter((r) => !cachedRavelryIds.has(r.ravelryId))
       .map((r) => ({ source: "RAVELRY" as const, ...r }));
 
-    return [...localResults, ...ravelryResults];
+    return { items: [...localResults, ...ravelryResults], ravelryUnavailable: false };
   }
 
   // 검색 결과 중 사용자가 실제로 클릭한 Ravelry 항목만 최소 메타데이터로 캐싱 (기획서 2.1/2.9)

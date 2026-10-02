@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { PrismaService } from "../prisma/prisma.service";
-import { RavelryService } from "../ravelry/ravelry.service";
+import { RavelryService, RavelryUnavailableError } from "../ravelry/ravelry.service";
 import { PatternService } from "./pattern.service";
 
 describe("PatternService", () => {
@@ -94,6 +94,47 @@ describe("PatternService", () => {
     it("rejects a malformed cursor", async () => {
       await expect(service.findAll({ cursor: "garbage" })).rejects.toThrow(BadRequestException);
       expect(prisma.pattern.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("search", () => {
+    const local = (id: string, ravelryId: number | null = null) => ({ id, ravelryId, bookmarks: [] });
+
+    it("merges Ravelry results, dropping ones already cached locally", async () => {
+      prisma.pattern.findMany.mockResolvedValue([local("p1", 7)]);
+      ravelry.searchPatterns.mockResolvedValue([
+        { ravelryId: 7, name: "cached" },
+        { ravelryId: 8, name: "new" },
+      ]);
+
+      const result = await service.search("sweater", "user-1");
+
+      expect(result.ravelryUnavailable).toBe(false);
+      expect(result.items.map((r) => [r.source, (r as { ravelryId: number | null }).ravelryId])).toEqual([
+        ["LOCAL", 7],
+        ["RAVELRY", 8],
+      ]);
+    });
+
+    it("keeps local results and flags ravelryUnavailable when the Ravelry call fails", async () => {
+      prisma.pattern.findMany.mockResolvedValue([local("p1")]);
+      ravelry.searchPatterns.mockRejectedValue(new RavelryUnavailableError());
+
+      const result = await service.search("sweater");
+
+      expect(result).toEqual({ items: [expect.objectContaining({ id: "p1", source: "LOCAL" })], ravelryUnavailable: true });
+    });
+
+    it("rethrows unexpected errors instead of hiding them behind the flag", async () => {
+      prisma.pattern.findMany.mockResolvedValue([]);
+      ravelry.searchPatterns.mockRejectedValue(new Error("bug"));
+
+      await expect(service.search("sweater")).rejects.toThrow("bug");
+    });
+
+    it("skips Ravelry entirely for an empty query", async () => {
+      await expect(service.search("  ")).resolves.toEqual({ items: [], ravelryUnavailable: false });
+      expect(ravelry.searchPatterns).not.toHaveBeenCalled();
     });
   });
 

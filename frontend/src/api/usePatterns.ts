@@ -9,8 +9,10 @@ import type {
   PatternSearchResult,
   PatternYarnMatch,
   RavelryPatternDetail,
+  SearchResponse,
   UpdatePatternInput,
 } from "../types/api";
+import { normalizeSearchResponse } from "../lib/ravelry";
 
 interface PatternListParams {
   craftType?: string;
@@ -32,7 +34,10 @@ export function usePatternsInfiniteQuery(params: PatternListParams) {
 export function usePatternSearchQuery(query: string) {
   return useQuery({
     queryKey: ["patterns", "search", query],
-    queryFn: () => api.get<PatternSearchResult[]>(`/patterns/search?q=${encodeURIComponent(query)}`),
+    queryFn: async () =>
+      normalizeSearchResponse(
+        await api.get<SearchResponse<PatternSearchResult> | PatternSearchResult[]>(`/patterns/search?q=${encodeURIComponent(query)}`),
+      ),
     enabled: query.trim().length > 0,
   });
 }

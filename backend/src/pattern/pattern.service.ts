@@ -12,7 +12,7 @@ import {
   yardageLabel,
   yardageRatioPercent,
 } from "../common/matching.util";
-import { RavelryService } from "../ravelry/ravelry.service";
+import { RavelryService, RavelryUnavailableError } from "../ravelry/ravelry.service";
 import { CreatePatternDto } from "./dto/create-pattern.dto";
 import { UpdatePatternDto } from "./dto/update-pattern.dto";
 
@@ -61,8 +61,9 @@ export class PatternService {
   }
 
   // 화면설계서 5번 - 로컬 우선 + Ravelry 병합 검색 (결과가 적을 때만 Ravelry 폴백 호출)
+  // ravelryUnavailable: Ravelry 폴백을 시도했는데 실패한 경우 true - 화면에서 "외부 검색 일시 불가"를 안내하는 용도
   async search(query: string, userId?: string) {
-    if (!query?.trim()) return [];
+    if (!query?.trim()) return { items: [], ravelryUnavailable: false };
 
     const local = await this.prisma.pattern.findMany({
       where: {
@@ -75,14 +76,22 @@ export class PatternService {
       include: myBookmarkInclude(userId),
     });
     const localResults = local.map((p) => ({ source: "LOCAL" as const, ...withBookmarkFlag(p) }));
-    if (local.length >= 20) return localResults;
+    if (local.length >= 20) return { items: localResults, ravelryUnavailable: false };
+
+    let ravelryHits: Awaited<ReturnType<RavelryService["searchPatterns"]>>;
+    try {
+      ravelryHits = await this.ravelry.searchPatterns(query);
+    } catch (err) {
+      if (err instanceof RavelryUnavailableError) return { items: localResults, ravelryUnavailable: true };
+      throw err;
+    }
 
     const cachedRavelryIds = new Set(local.map((p) => p.ravelryId).filter((id): id is number => id != null));
-    const ravelryResults = (await this.ravelry.searchPatterns(query))
+    const ravelryResults = ravelryHits
       .filter((r) => !cachedRavelryIds.has(r.ravelryId))
       .map((r) => ({ source: "RAVELRY" as const, ...r }));
 
-    return [...localResults, ...ravelryResults];
+    return { items: [...localResults, ...ravelryResults], ravelryUnavailable: false };
   }
 
   // 화면설계서 5번 - Ravelry 검색 결과 클릭 시 등록 폼 자동 채움용 상세 조회 (DB에 쓰지 않는 순수 조회)
