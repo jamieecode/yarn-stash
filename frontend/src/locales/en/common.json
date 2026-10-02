@@ -19,6 +19,16 @@
     "uploading": "Uploading",
     "addPhoto": "Add photo"
   },
+  "ravelry": {
+    "searchUnavailable": "Ravelry search is temporarily unavailable. Showing results from My DB only",
+    "detailUnavailable": "Couldn't load details from Ravelry. Please try again shortly"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong loading this screen",
+    "description": "Please try again. If it keeps happening, go back home.",
+    "retry": "Try again",
+    "goHome": "Go home"
+  },
   "error": {
     "requestFailed": "Request failed ({{status}})",
     "photoUploadFailed": "Photo upload failed",

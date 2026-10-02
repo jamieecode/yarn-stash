@@ -19,6 +19,16 @@
     "uploading": "업로드 중",
     "addPhoto": "사진 추가"
   },
+  "ravelry": {
+    "searchUnavailable": "지금은 Ravelry 검색이 잠시 안 돼요. 내 DB 결과만 보여드려요",
+    "detailUnavailable": "Ravelry에서 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요"
+  },
+  "errorBoundary": {
+    "title": "화면을 불러오는 중 문제가 생겼어요",
+    "description": "잠시 후 다시 시도해 주세요. 계속되면 홈으로 이동해 주세요.",
+    "retry": "다시 시도",
+    "goHome": "홈으로"
+  },
   "error": {
     "requestFailed": "요청에 실패했어요 ({{status}})",
     "photoUploadFailed": "사진 업로드에 실패했어요",
