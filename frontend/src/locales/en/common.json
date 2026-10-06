@@ -31,6 +31,7 @@
   },
   "error": {
     "requestFailed": "Request failed ({{status}})",
+    "network": "Couldn't reach the server. Please check your connection",
     "tooManyRequests": "Too many requests. Please try again in a moment",
     "photoUploadFailed": "Photo upload failed",
     "cloudinaryNotConfigured": "Cloudinary isn't configured yet (fill in the VITE_CLOUDINARY_* values in .env)"

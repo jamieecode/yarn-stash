@@ -48,13 +48,13 @@ export function YarnDetailPage() {
 
   const totalSkeinCount = yarn.batches.reduce((s, b) => s + b.skeinCount, 0);
 
-  async function handleToggleConsumed() {
-    await updateYarn.mutateAsync({ consumed: !yarn!.consumed });
+  // 실패 사유는 전역 오류 토스트로 알린다 (lib/queryClient.ts) - 성공했을 때만 이동
+  function handleToggleConsumed() {
+    updateYarn.mutate({ consumed: !yarn!.consumed });
   }
 
-  async function handleDelete() {
-    await deleteYarn.mutateAsync(yarn!.id);
-    navigate("/yarns", { replace: true });
+  function handleDelete() {
+    deleteYarn.mutate(yarn!.id, { onSuccess: () => navigate("/yarns", { replace: true }) });
   }
 
   return (
@@ -228,16 +228,18 @@ function AddBatchForm({ yarnId, onDone }: { yarnId: string; onDone: () => void }
   const [lengthPerSkein, setLengthPerSkein] = useState("");
   const [unit, setUnit] = useState<UnitSystem>("METRIC");
 
-  async function handleSubmit() {
+  function handleSubmit() {
     if (!skeinCount || !weightPerSkein || !lengthPerSkein) return;
-    await addBatch.mutateAsync({
-      dyeLot: dyeLot || undefined,
-      skeinCount: Number(skeinCount),
-      weightPerSkeinG: Number(weightPerSkein),
-      lengthPerSkeinM: Number(lengthPerSkein),
-      inputUnit: unit,
-    });
-    onDone();
+    addBatch.mutate(
+      {
+        dyeLot: dyeLot || undefined,
+        skeinCount: Number(skeinCount),
+        weightPerSkeinG: Number(weightPerSkein),
+        lengthPerSkeinM: Number(lengthPerSkein),
+        inputUnit: unit,
+      },
+      { onSuccess: onDone },
+    );
   }
 
   return (

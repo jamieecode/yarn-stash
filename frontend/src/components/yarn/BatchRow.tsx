@@ -22,23 +22,25 @@ export function BatchRow({ yarnId, batch }: { yarnId: string; batch: YarnBatch }
   const [weightPerSkein, setWeightPerSkein] = useState(String(dispWeight.value));
   const [lengthPerSkein, setLengthPerSkein] = useState(String(dispLength.value));
 
-  async function handleSave() {
-    await updateBatch.mutateAsync({
-      batchId: batch.id,
-      dto: {
-        dyeLot: dyeLot || undefined,
-        skeinCount: Number(skeinCount),
-        weightPerSkeinG: Number(weightPerSkein),
-        lengthPerSkeinM: Number(lengthPerSkein),
-        inputUnit: batch.inputUnit,
+  // 실패하면 편집/확인 상태를 그대로 두고, 사유는 전역 오류 토스트로 알린다 (lib/queryClient.ts)
+  function handleSave() {
+    updateBatch.mutate(
+      {
+        batchId: batch.id,
+        dto: {
+          dyeLot: dyeLot || undefined,
+          skeinCount: Number(skeinCount),
+          weightPerSkeinG: Number(weightPerSkein),
+          lengthPerSkeinM: Number(lengthPerSkein),
+          inputUnit: batch.inputUnit,
+        },
       },
-    });
-    setEditing(false);
+      { onSuccess: () => setEditing(false) },
+    );
   }
 
-  async function handleDelete() {
-    await removeBatch.mutateAsync(batch.id);
-    setConfirmingDelete(false);
+  function handleDelete() {
+    removeBatch.mutate(batch.id, { onSuccess: () => setConfirmingDelete(false) });
   }
 
   if (editing) {

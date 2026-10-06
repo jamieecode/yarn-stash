@@ -31,6 +31,7 @@
   },
   "error": {
     "requestFailed": "요청에 실패했어요 ({{status}})",
+    "network": "서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요",
     "tooManyRequests": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요",
     "photoUploadFailed": "사진 업로드에 실패했어요",
     "cloudinaryNotConfigured": "Cloudinary 설정이 아직 안 돼 있어요 (.env의 VITE_CLOUDINARY_* 값을 채워주세요)"

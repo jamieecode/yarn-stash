@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useParams } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import i18n from "../../lib/i18n";
+import { createQueryClient } from "../../lib/queryClient";
+import { ErrorToast } from "../../components/ui/ErrorToast";
 import { mockApi } from "../../test/mockApi";
 import type { YarnCatalog } from "../../types/api";
 import { YarnRegisterPage } from "./YarnRegisterPage";
@@ -16,7 +18,8 @@ function YarnDetailStub() {
 }
 
 function renderPage() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  // 실제 앱과 같은 QueryClient(전역 오류 토스트 포함)로 렌더링
+  const queryClient = createQueryClient();
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={["/yarns/new"]}>
@@ -25,6 +28,7 @@ function renderPage() {
           <Route path="/yarns/:id" element={<YarnDetailStub />} />
         </Routes>
       </MemoryRouter>
+      <ErrorToast />
     </QueryClientProvider>,
   );
 }
@@ -245,6 +249,7 @@ describe("YarnRegisterPage", () => {
     await userEvent.click(await screen.findByRole("button", { name: /Malabrigo Rios/ }));
 
     expect(await screen.findByText(t("common:ravelry.detailUnavailable"))).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(field("yarn:register.lineNameLabel")).toHaveValue("");
   });
 
@@ -270,5 +275,7 @@ describe("YarnRegisterPage", () => {
 
     expect(await screen.findByText(t("yarn:register.submitError"))).toBeInTheDocument();
     expect(submitButton()).toBeEnabled();
+    // 화면이 직접 문구를 보여주므로 전역 토스트는 띄우지 않는다
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

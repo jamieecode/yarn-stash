@@ -49,19 +49,22 @@ export function YarnEditPage() {
     );
   }
 
-  async function handleSubmit() {
-    await updateYarn.mutateAsync({
-      brand,
-      lineName: lineName || undefined,
-      colorName: colorName || undefined,
-      fiber: fiber || undefined,
-      weightCategory: weightCategory || undefined,
-      needleSize: needleSize || undefined,
-      gaugeStitches: gaugeStitches ? Number(gaugeStitches) : undefined,
-      memo: memo || undefined,
-      photos,
-    });
-    navigate(`/yarns/${id}`, { replace: true });
+  // 실패 사유는 전역 오류 토스트로 알린다 (lib/queryClient.ts) - 성공했을 때만 상세로 이동
+  function handleSubmit() {
+    updateYarn.mutate(
+      {
+        brand,
+        lineName: lineName || undefined,
+        colorName: colorName || undefined,
+        fiber: fiber || undefined,
+        weightCategory: weightCategory || undefined,
+        needleSize: needleSize || undefined,
+        gaugeStitches: gaugeStitches ? Number(gaugeStitches) : undefined,
+        memo: memo || undefined,
+        photos,
+      },
+      { onSuccess: () => navigate(`/yarns/${id}`, { replace: true }) },
+    );
   }
 
   return (

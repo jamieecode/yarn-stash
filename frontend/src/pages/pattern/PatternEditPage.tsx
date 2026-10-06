@@ -65,23 +65,26 @@ export function PatternEditPage() {
 
   const canSubmit = name.trim().length > 0 && craftType !== "" && weightCategory !== "" && requiredMin.trim().length > 0;
 
-  async function handleSubmit() {
+  // 실패 사유는 전역 오류 토스트로 알린다 (lib/queryClient.ts) - 성공했을 때만 상세로 이동
+  function handleSubmit() {
     if (!canSubmit) return;
-    await updatePattern.mutateAsync({
-      name,
-      designer: designer || undefined,
-      craftType,
-      weightCategory,
-      requiredMinM: Number(requiredMin),
-      requiredMaxM: requiredMax ? Number(requiredMax) : undefined,
-      requiredUnit,
-      gaugeStitches: gaugeStitches ? Number(gaugeStitches) : undefined,
-      sourceUrl: sourceUrl || undefined,
-      originalYarnCatalogId,
-      originalYarnBrand: originalYarnBrand || undefined,
-      originalYarnLine: originalYarnLine || undefined,
-    });
-    navigate(`/patterns/${id}`, { replace: true });
+    updatePattern.mutate(
+      {
+        name,
+        designer: designer || undefined,
+        craftType,
+        weightCategory,
+        requiredMinM: Number(requiredMin),
+        requiredMaxM: requiredMax ? Number(requiredMax) : undefined,
+        requiredUnit,
+        gaugeStitches: gaugeStitches ? Number(gaugeStitches) : undefined,
+        sourceUrl: sourceUrl || undefined,
+        originalYarnCatalogId,
+        originalYarnBrand: originalYarnBrand || undefined,
+        originalYarnLine: originalYarnLine || undefined,
+      },
+      { onSuccess: () => navigate(`/patterns/${id}`, { replace: true }) },
+    );
   }
 
   return (

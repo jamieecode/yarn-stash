@@ -23,5 +23,7 @@ export function useResolveRavelryYarnMutation() {
   return useMutation({
     mutationFn: (ravelryId: number) => api.post<YarnCatalog>(`/yarn-catalog/ravelry/${ravelryId}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["yarn-catalog"] }),
+    // 자동완성 아래에 Ravelry 장애 안내를 직접 보여준다
+    meta: { errorToast: false },
   });
 }

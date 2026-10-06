@@ -49,27 +49,25 @@ export function ProjectDetailPage() {
     updateProject.mutate({ status });
   }
 
-  async function handleComplete(confirmUsages: { yarnId: string; usedM: number }[]) {
-    await updateProject.mutateAsync({ status: "COMPLETED", confirmUsages });
-    setConfirmingComplete(false);
+  // 실패하면 모달을 그대로 두고, 사유는 전역 오류 토스트로 알린다 (lib/queryClient.ts)
+  function handleComplete(confirmUsages: { yarnId: string; usedM: number }[]) {
+    updateProject.mutate({ status: "COMPLETED", confirmUsages }, { onSuccess: () => setConfirmingComplete(false) });
   }
 
   function handleRowChange(delta: number) {
     updateProject.mutate({ currentRow: Math.max(0, project!.currentRow + delta) });
   }
 
-  async function handleReset() {
-    await updateProject.mutateAsync({ currentRow: 0 });
-    setConfirmingReset(false);
+  function handleReset() {
+    updateProject.mutate({ currentRow: 0 }, { onSuccess: () => setConfirmingReset(false) });
   }
 
   function handlePhotosChange(photos: PhotoInput[]) {
     updateProject.mutate({ photos });
   }
 
-  async function handleDelete() {
-    await deleteProject.mutateAsync(project!.id);
-    navigate("/projects", { replace: true });
+  function handleDelete() {
+    deleteProject.mutate(project!.id, { onSuccess: () => navigate("/projects", { replace: true }) });
   }
 
   return (

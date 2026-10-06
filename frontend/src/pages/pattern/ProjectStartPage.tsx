@@ -26,9 +26,12 @@ export function ProjectStartPage() {
     );
   }
 
-  async function handleStart() {
-    const project = await startProject.mutateAsync({ patternId: pattern!.id, yarnId: selectedYarnId });
-    navigate(`/projects/${project.id}`, { replace: true });
+  // 실패 사유는 전역 오류 토스트로 알린다 (lib/queryClient.ts) - 성공했을 때만 프로젝트로 이동
+  function handleStart() {
+    startProject.mutate(
+      { patternId: pattern!.id, yarnId: selectedYarnId },
+      { onSuccess: (project) => navigate(`/projects/${project.id}`, { replace: true }) },
+    );
   }
 
   return (

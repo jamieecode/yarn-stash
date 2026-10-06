@@ -46,6 +46,8 @@ export function useCreateYarnMutation() {
   return useMutation({
     mutationFn: (dto: CreateYarnInput) => api.post<Yarn>("/yarns", dto),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["yarns"] }),
+    // 실 등록 화면이 실패 문구를 버튼 아래에 직접 보여준다
+    meta: { errorToast: false },
   });
 }
 

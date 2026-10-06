@@ -3,6 +3,7 @@ import { MainLayout } from "./components/layout/MainLayout";
 import { PlainLayout } from "./components/layout/PlainLayout";
 import { RequireSession } from "./auth/RequireSession";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ErrorToast } from "./components/ui/ErrorToast";
 import { IndexGate } from "./pages/IndexGate";
 import { HomePage } from "./pages/HomePage";
 import { KakaoCallbackPage } from "./pages/auth/KakaoCallbackPage";
@@ -24,35 +25,39 @@ import { MyPage } from "./pages/MyPage";
 // RequireSession이 두 레이아웃 그룹을 감싸 세션 없이 딥링크로 들어오는 경우를 시작 화면으로 되돌림
 function App() {
   // 레이아웃 밖 화면(시작/OAuth 콜백)용 최상위 바운더리 - 레이아웃 안 화면은 각 레이아웃이 따로 감싼다
+  // 오류 토스트는 바운더리 밖에 둬서 화면이 에러 상태여도 표시된다
   return (
-    <ErrorBoundary>
-      <Routes>
-        <Route path="/" element={<IndexGate />} />
-        <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
-        <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
+    <>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<IndexGate />} />
+          <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
+          <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
   
-        <Route element={<RequireSession />}>
-          <Route element={<MainLayout />}>
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/yarns" element={<YarnListPage />} />
-            <Route path="/patterns" element={<PatternListPage />} />
-            <Route path="/projects" element={<ProjectListPage />} />
-            <Route path="/my" element={<MyPage />} />
-          </Route>
+          <Route element={<RequireSession />}>
+            <Route element={<MainLayout />}>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/yarns" element={<YarnListPage />} />
+              <Route path="/patterns" element={<PatternListPage />} />
+              <Route path="/projects" element={<ProjectListPage />} />
+              <Route path="/my" element={<MyPage />} />
+            </Route>
   
-          <Route element={<PlainLayout />}>
-            <Route path="/yarns/new" element={<YarnRegisterPage />} />
-            <Route path="/yarns/:id" element={<YarnDetailPage />} />
-            <Route path="/yarns/:id/edit" element={<YarnEditPage />} />
-            <Route path="/patterns/new" element={<PatternRegisterPage />} />
-            <Route path="/patterns/:id" element={<PatternDetailPage />} />
-            <Route path="/patterns/:id/edit" element={<PatternEditPage />} />
-            <Route path="/patterns/:id/start-project" element={<ProjectStartPage />} />
-            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route element={<PlainLayout />}>
+              <Route path="/yarns/new" element={<YarnRegisterPage />} />
+              <Route path="/yarns/:id" element={<YarnDetailPage />} />
+              <Route path="/yarns/:id/edit" element={<YarnEditPage />} />
+              <Route path="/patterns/new" element={<PatternRegisterPage />} />
+              <Route path="/patterns/:id" element={<PatternDetailPage />} />
+              <Route path="/patterns/:id/edit" element={<PatternEditPage />} />
+              <Route path="/patterns/:id/start-project" element={<ProjectStartPage />} />
+              <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
-    </ErrorBoundary>
+        </Routes>
+      </ErrorBoundary>
+      <ErrorToast />
+    </>
   );
 }
 

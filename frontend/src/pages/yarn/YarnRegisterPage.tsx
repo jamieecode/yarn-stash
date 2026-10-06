@@ -72,30 +72,32 @@ export function YarnRegisterPage() {
   const batchesValid = batches.every((b) => Number(b.skeinCount) >= 1 && Number(b.weightPerSkein) > 0 && Number(b.lengthPerSkein) > 0);
   const canSubmit = brand.trim().length > 0 && batchesValid;
 
-  async function handleSubmit() {
+  // 실패 문구는 createYarn.isError로 아래에 표시 (이 mutation은 전역 오류 토스트를 끔) - 성공했을 때만 상세로 이동
+  function handleSubmit() {
     if (!canSubmit) return;
-    // 실패 문구는 createYarn.isError로 아래에 표시 - 여기서 잡지 않으면 처리되지 않은 Promise 거부로 남는다
-    const yarn = await createYarn.mutateAsync({
-      catalogId,
-      brand,
-      lineName: lineName || undefined,
-      colorName: colorName || undefined,
-      fiber: fiber || undefined,
-      weightCategory: weightCategory || undefined,
-      needleSize: needleSize || undefined,
-      gaugeStitches: gaugeStitches ? Number(gaugeStitches) : undefined,
-      memo: memo || undefined,
-      photos,
-      batches: batches.map((b) => ({
-        dyeLot: b.dyeLot || undefined,
-        skeinCount: Number(b.skeinCount),
-        weightPerSkeinG: Number(b.weightPerSkein),
-        lengthPerSkeinM: Number(b.lengthPerSkein),
-        inputUnit: unit,
-        purchasedAt: b.purchasedAt || undefined,
-      })),
-    }).catch(() => null);
-    if (yarn) navigate(`/yarns/${yarn.id}`, { replace: true });
+    createYarn.mutate(
+      {
+        catalogId,
+        brand,
+        lineName: lineName || undefined,
+        colorName: colorName || undefined,
+        fiber: fiber || undefined,
+        weightCategory: weightCategory || undefined,
+        needleSize: needleSize || undefined,
+        gaugeStitches: gaugeStitches ? Number(gaugeStitches) : undefined,
+        memo: memo || undefined,
+        photos,
+        batches: batches.map((b) => ({
+          dyeLot: b.dyeLot || undefined,
+          skeinCount: Number(b.skeinCount),
+          weightPerSkeinG: Number(b.weightPerSkein),
+          lengthPerSkeinM: Number(b.lengthPerSkein),
+          inputUnit: unit,
+          purchasedAt: b.purchasedAt || undefined,
+        })),
+      },
+      { onSuccess: (yarn) => navigate(`/yarns/${yarn.id}`, { replace: true }) },
+    );
   }
 
   return (

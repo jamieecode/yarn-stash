@@ -21,6 +21,8 @@ import {
 } from "../../api/usePatterns";
 import { useAuth } from "../../auth/AuthContext";
 import { api } from "../../lib/apiClient";
+import { showErrorToast } from "../../lib/errorToast";
+import { apiErrorMessage } from "../../lib/queryClient";
 import type { Project } from "../../types/api";
 
 // 화면설계서 6번(도안 상세)
@@ -59,14 +61,14 @@ export function PatternDetailPage() {
 
   const isBookmarked = Boolean(pattern.myBookmark);
 
-  async function handleToggleBookmark() {
-    if (isBookmarked) await removeBookmark.mutateAsync();
-    else await addBookmark.mutateAsync();
+  // 실패 사유(찜한 사람이 있거나 진행한 프로젝트가 있어 삭제 불가 등)는 전역 오류 토스트로 알린다 (lib/queryClient.ts)
+  function handleToggleBookmark() {
+    if (isBookmarked) removeBookmark.mutate();
+    else addBookmark.mutate();
   }
 
-  async function handleDelete() {
-    await deletePattern.mutateAsync(pattern!.id);
-    navigate("/patterns", { replace: true });
+  function handleDelete() {
+    deletePattern.mutate(pattern!.id, { onSuccess: () => navigate("/patterns", { replace: true }) });
   }
 
   // 이 도안으로 진행 중인 프로젝트가 이미 있는지 확인 (기획서 6-2 - 있으면 새로 안 만들고 그 프로젝트로 이동)
@@ -76,6 +78,8 @@ export function PatternDetailPage() {
       const inProgress = await api.get<Project[]>(`/projects?patternId=${pattern!.id}&status=IN_PROGRESS`);
       if (inProgress[0]) navigate(`/projects/${inProgress[0].id}`);
       else navigate(`/patterns/${pattern!.id}/start-project`);
+    } catch (err) {
+      showErrorToast(apiErrorMessage(err));
     } finally {
       setIsStarting(false);
     }
