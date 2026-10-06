@@ -14,6 +14,15 @@ npm run dev
 
 The backend (`../backend`) must be running first.
 
+## Tests
+
+```bash
+npm test             # Vitest + Testing Library (jsdom), single run
+npm run test:watch   # re-run on file changes
+```
+
+No backend needed — API calls are stubbed via `fetch`. These are smoke-level tests covering app routing/session guard, the error boundary, API client error handling, and `lib/` utilities, and they run in CI on every push.
+
 ## Tech Stack
 
 - React 19 + Vite + TypeScript

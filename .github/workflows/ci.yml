@@ -59,4 +59,5 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run check-i18n
+      - run: npm test
       - run: npm run build

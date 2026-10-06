@@ -14,6 +14,15 @@ npm run dev
 
 백엔드(`../backend`)가 먼저 떠 있어야 합니다.
 
+## 테스트
+
+```bash
+npm test             # Vitest + Testing Library (jsdom), 한 번 실행
+npm run test:watch   # 파일 변경 시 다시 실행
+```
+
+백엔드 없이 돌아갑니다. API 호출은 `fetch`를 스텁으로 대체합니다. 앱 라우팅/세션 가드, 에러 바운더리, API 클라이언트 오류 처리, `lib/` 유틸을 다루는 스모크 수준의 테스트이며 CI에서 매 푸시마다 실행합니다.
+
 ## 기술 스택
 
 - React 19 + Vite + TypeScript
