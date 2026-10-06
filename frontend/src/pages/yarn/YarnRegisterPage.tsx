@@ -74,6 +74,7 @@ export function YarnRegisterPage() {
 
   async function handleSubmit() {
     if (!canSubmit) return;
+    // 실패 문구는 createYarn.isError로 아래에 표시 - 여기서 잡지 않으면 처리되지 않은 Promise 거부로 남는다
     const yarn = await createYarn.mutateAsync({
       catalogId,
       brand,
@@ -93,8 +94,8 @@ export function YarnRegisterPage() {
         inputUnit: unit,
         purchasedAt: b.purchasedAt || undefined,
       })),
-    });
-    navigate(`/yarns/${yarn.id}`, { replace: true });
+    }).catch(() => null);
+    if (yarn) navigate(`/yarns/${yarn.id}`, { replace: true });
   }
 
   return (

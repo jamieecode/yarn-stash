@@ -21,7 +21,7 @@ npm test             # Vitest + Testing Library (jsdom), single run
 npm run test:watch   # re-run on file changes
 ```
 
-No backend needed — API calls are stubbed via `fetch`. These are smoke-level tests covering app routing/session guard, the error boundary, API client error handling, and `lib/` utilities, and they run in CI on every push.
+No backend needed — API calls are stubbed via `fetch`. There are smoke tests covering app routing/session guard, the error boundary, API client error handling, and `lib/` utilities, plus tests for the yarn register screen; they run in CI on every push. Screen tests stub per-request responses with `src/test/mockApi.ts`.
 
 ## Tech Stack
 

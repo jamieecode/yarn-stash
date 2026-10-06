@@ -46,7 +46,10 @@
   - 게스트 → 소셜 계정 병합(카카오, `mergeGuestInto`) — `global.fetch`를 스텁으로 대체해 실제 카카오 서버 호출 없이 검증
   - 도안 삭제 제약 조건(연결된 프로젝트 있을 때 403 거부)
   - 사용법은 `backend/README.md`의 "e2e 테스트" 섹션 참고
-- [x] 프론트엔드 스모크 테스트 — ✅ 완료 (2026-10-06). Vitest + Testing Library(jsdom) 구성, `npm test`로 실행하고 CI frontend 잡에 추가. 앱 라우팅/세션 가드(세션 없음·딥링크·만료 토큰 401), 에러 바운더리(대체 화면·다시 시도·경로 변경 시 해제), `apiClient` 오류 처리(429 번역 문구·서버 message·204), `lib/` 유틸까지 18개 테스트. 개별 화면의 폼/목록 동작은 아직 테스트 없음
+- [x] 프론트엔드 스모크 테스트 — ✅ 완료 (2026-10-06). Vitest + Testing Library(jsdom) 구성, `npm test`로 실행하고 CI frontend 잡에 추가. 앱 라우팅/세션 가드(세션 없음·딥링크·만료 토큰 401), 에러 바운더리(대체 화면·다시 시도·경로 변경 시 해제), `apiClient` 오류 처리(429 번역 문구·서버 message·204), `lib/` 유틸까지 18개 테스트
+- [x] 실 등록 화면 테스트 — ✅ 완료 (2026-10-06). `YarnRegisterPage.test.tsx` 10개: 입력 검증, 등록 요청 본문/상세 이동, g·m↔oz·yd 단위, 배치 추가·제거, 내 DB/Ravelry 카탈로그 자동 채움과 연결 해제, Ravelry 503·검색 불가 안내, 등록 실패. 요청별 응답 스텁은 `src/test/mockApi.ts`
+- [ ] 나머지 화면 테스트 — 도안 등록, 도안 목록(무한 스크롤, jsdom에 `IntersectionObserver`가 없어 스텁 필요) 순으로 추가 고려
+- [ ] `mutateAsync` 실패 미처리 — 실 등록 테스트에서 발견. 등록/수정/삭제 핸들러가 `await x.mutateAsync()`를 try/catch 없이 호출해서, 서버가 실패하면 처리되지 않은 Promise 거부가 남음. 실 등록은 고쳤고(`.catch(() => null)` 후 성공 시에만 이동), 같은 패턴이 도안 등록/수정, 실 수정/상세, 프로젝트 시작/상세, `BatchRow` 등 13곳에 남아 있음. 일부 화면은 실패 문구도 표시하지 않음
 - [x] Ravelry 오류 로깅 — ✅ 완료 (2026-10-01). `ravelry.service.ts`의 `get()`이 실패 원인별로 로그를 남김: 401/403은 error(크리덴셜 점검 필요), 429/5xx/네트워크 오류/8초 타임아웃은 warn, 상세 조회 404는 정상 케이스라 로그 없음. 키가 비어 있으면 기동 시 한 번 경고.
 - [x] Ravelry 장애 안내 — ✅ 완료 (2026-10-02). 404 외 실패는 `RavelryUnavailableError`(503)로 구분. 검색(`/patterns/search`, `/yarn-catalog/search`)은 로컬 결과를 그대로 주되 응답을 `{ items, ravelryUnavailable }`로 바꿔 화면에 "Ravelry 검색 일시 불가" 안내를 띄우고, 상세 조회(등록 폼 자동 채움/카탈로그 확정)는 503으로 응답해 오류 문구를 표시. 프론트는 예전 배열 응답도 받아주므로(`lib/ravelry.ts`) 배포 순서와 무관
 - [x] 프론트 에러 바운더리 — ✅ 완료 (2026-10-02). 렌더링 중 예외가 나도 앱 전체가 빈 화면이 되지 않도록 레이아웃의 `<Outlet />`과 최상위 라우트를 `components/ErrorBoundary.tsx`로 감쌈. 하단 탭바는 바운더리 밖이라 다른 탭으로 이동 가능하고, 경로가 바뀌면 에러 상태가 자동으로 풀림
