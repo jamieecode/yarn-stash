@@ -230,6 +230,8 @@ export function PatternRegisterPage() {
                     setYarnQuery(q);
                     setOriginalYarnCatalogId(undefined);
                     setOriginalYarnBrand(q);
+                    // 라인명은 화면에 따로 보이지 않으므로, 고른 카탈로그의 라인명이 다른 브랜드에 붙어 저장되지 않게 비운다
+                    setOriginalYarnLine("");
                   }}
                   onSelect={(catalog) => {
                     setOriginalYarnCatalogId(catalog.id);
