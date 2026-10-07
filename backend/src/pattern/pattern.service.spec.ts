@@ -171,6 +171,47 @@ describe("PatternService", () => {
     });
   });
 
+  describe("update", () => {
+    beforeEach(() => {
+      prisma.pattern.findUnique.mockResolvedValue({ id: "pattern-1", createdByUserId: "user-1", requiredUnit: "METRIC" });
+      prisma.pattern.update.mockResolvedValue({ id: "pattern-1" });
+    });
+
+    it("clears optional fields sent as null and leaves omitted fields untouched", async () => {
+      await service.update("user-1", "pattern-1", {
+        originalYarnCatalogId: null,
+        originalYarnBrand: null,
+        originalYarnLine: null,
+        requiredMaxM: null,
+      });
+
+      const { data } = prisma.pattern.update.mock.calls[0][0];
+      expect(data).toMatchObject({
+        originalYarnCatalogId: null,
+        originalYarnBrand: null,
+        originalYarnLine: null,
+        requiredMaxM: null,
+      });
+      expect(data.name).toBeUndefined();
+      expect(data.designer).toBeUndefined();
+    });
+
+    it("normalizes yardage to meters using the stored unit when the unit isn't sent", async () => {
+      prisma.pattern.findUnique.mockResolvedValue({ id: "pattern-1", createdByUserId: "user-1", requiredUnit: "IMPERIAL" });
+
+      await service.update("user-1", "pattern-1", { requiredMinM: 100, requiredMaxM: 200 });
+
+      expect(prisma.pattern.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ requiredMinM: 91.4, requiredMaxM: 182.9 }) }),
+      );
+    });
+
+    it("refuses when the caller isn't the owner", async () => {
+      await expect(service.update("user-2", "pattern-1", { name: "남의 도안" })).rejects.toThrow(ForbiddenException);
+      expect(prisma.pattern.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe("remove", () => {
     beforeEach(() => {
       prisma.pattern.findUnique.mockResolvedValue({ id: "pattern-1", createdByUserId: "owner-1" });

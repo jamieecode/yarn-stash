@@ -299,7 +299,18 @@ export interface CreatePatternInput {
   originalYarnLine?: string;
 }
 
-export type UpdatePatternInput = Partial<Omit<CreatePatternInput, "sourceType" | "ravelryId">>;
+// 보내지 않은 필드는 그대로 두고, 선택 항목에 null을 보내면 값을 비운다
+type ClearablePatternField =
+  | "designer"
+  | "requiredMaxM"
+  | "gaugeStitches"
+  | "sourceUrl"
+  | "originalYarnCatalogId"
+  | "originalYarnBrand"
+  | "originalYarnLine";
+export type UpdatePatternInput = Partial<Omit<CreatePatternInput, "sourceType" | "ravelryId" | ClearablePatternField>> & {
+  [K in ClearablePatternField]?: CreatePatternInput[K] | null;
+};
 
 // GET /dashboard - 홈 화면 집계. 길이는 전부 m 기준(백엔드에서 정규화된 값)
 export interface DashboardSummary {

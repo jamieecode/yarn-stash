@@ -142,6 +142,7 @@ export class PatternService {
   }
 
   // 화면설계서 6-1 - 등록한 사람(createdByUserId)만 수정 가능, ravelryId/sourceType은 불변으로 유지
+  // undefined는 Prisma가 "변경 없음"으로, null은 "비우기"로 처리하므로 DTO 값을 그대로 넘긴다
   async update(userId: string, patternId: string, dto: UpdatePatternDto) {
     const pattern = await this.assertOwnership(userId, patternId);
     const unit = dto.requiredUnit ?? pattern.requiredUnit ?? "METRIC";
@@ -153,7 +154,7 @@ export class PatternService {
         craftType: dto.craftType as any,
         weightCategory: dto.weightCategory as any,
         requiredMinM: dto.requiredMinM !== undefined ? toMeters(dto.requiredMinM, unit) : undefined,
-        requiredMaxM: dto.requiredMaxM !== undefined ? toMeters(dto.requiredMaxM, unit) : undefined,
+        requiredMaxM: dto.requiredMaxM != null ? toMeters(dto.requiredMaxM, unit) : dto.requiredMaxM,
         requiredUnit: dto.requiredUnit,
         gaugeStitches: dto.gaugeStitches,
         sourceUrl: dto.sourceUrl,

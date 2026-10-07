@@ -12,6 +12,7 @@ import {
   type WeightCategory,
 } from "../../types/api";
 import { craftTypeLabel, weightCategoryLabel } from "../../lib/enumLabels";
+import { displayLength } from "../../lib/units";
 
 // 화면설계서 6-1(도안 수정) - 검색 UI 없이 필드 직접 수정, ravelryId/sourceType은 변경하지 않음
 export function PatternEditPage() {
@@ -42,9 +43,11 @@ export function PatternEditPage() {
     setDesigner(pattern.designer ?? "");
     setCraftType(pattern.craftType);
     setWeightCategory(pattern.weightCategory);
-    setRequiredUnit(pattern.requiredUnit ?? "METRIC");
-    setRequiredMin(String(pattern.requiredMinM));
-    setRequiredMax(pattern.requiredMaxM != null ? String(pattern.requiredMaxM) : "");
+    // 저장값은 m로 정규화돼 있으므로, 등록할 때 쓴 단위로 되돌려 보여줘야 그대로 저장해도 값이 바뀌지 않는다
+    const unit = pattern.requiredUnit ?? "METRIC";
+    setRequiredUnit(unit);
+    setRequiredMin(String(displayLength(pattern.requiredMinM, unit).value));
+    setRequiredMax(pattern.requiredMaxM != null ? String(displayLength(pattern.requiredMaxM, unit).value) : "");
     setGaugeStitches(pattern.gaugeStitches != null ? String(pattern.gaugeStitches) : "");
     setSourceUrl(pattern.sourceUrl ?? "");
     setOriginalYarnBrand(pattern.originalYarnBrand ?? "");
@@ -66,22 +69,23 @@ export function PatternEditPage() {
   const canSubmit = name.trim().length > 0 && craftType !== "" && weightCategory !== "" && requiredMin.trim().length > 0;
 
   // 실패 사유는 전역 오류 토스트로 알린다 (lib/queryClient.ts) - 성공했을 때만 상세로 이동
+  // 비운 선택 항목은 null로 보내야 백엔드가 지운다 (undefined는 "변경 없음")
   function handleSubmit() {
     if (!canSubmit) return;
     updatePattern.mutate(
       {
         name,
-        designer: designer || undefined,
+        designer: designer || null,
         craftType,
         weightCategory,
         requiredMinM: Number(requiredMin),
-        requiredMaxM: requiredMax ? Number(requiredMax) : undefined,
+        requiredMaxM: requiredMax ? Number(requiredMax) : null,
         requiredUnit,
-        gaugeStitches: gaugeStitches ? Number(gaugeStitches) : undefined,
-        sourceUrl: sourceUrl || undefined,
-        originalYarnCatalogId,
-        originalYarnBrand: originalYarnBrand || undefined,
-        originalYarnLine: originalYarnLine || undefined,
+        gaugeStitches: gaugeStitches ? Number(gaugeStitches) : null,
+        sourceUrl: sourceUrl || null,
+        originalYarnCatalogId: originalYarnCatalogId ?? null,
+        originalYarnBrand: originalYarnBrand || null,
+        originalYarnLine: originalYarnLine || null,
       },
       { onSuccess: () => navigate(`/patterns/${id}`, { replace: true }) },
     );
@@ -156,6 +160,8 @@ export function PatternEditPage() {
                 setYarnQuery(q);
                 setOriginalYarnCatalogId(undefined);
                 setOriginalYarnBrand(q);
+                // 라인명은 화면에 따로 보이지 않으므로, 이전 원본 실의 라인명이 다른 브랜드에 붙어 저장되지 않게 비운다
+                setOriginalYarnLine("");
               }}
               onSelect={(catalog) => {
                 setOriginalYarnCatalogId(catalog.id);

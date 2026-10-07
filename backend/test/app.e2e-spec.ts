@@ -262,6 +262,76 @@ describe("App e2e", () => {
     });
   });
 
+  // 수정에서 필드를 빼면 그대로, null을 보내면 비운다 - ValidationPipe(whitelist/transform)를 거쳐도 null이 살아 있는지 확인
+  describe("도안 수정", () => {
+    it("원본 실을 null로 보내면 카탈로그 연결·브랜드·라인명이 모두 지워지고, 보내지 않은 필드는 그대로다", async () => {
+      const token = await createLoggedInUser();
+      const meRes = await request(app.getHttpServer())
+        .get("/api/auth/me")
+        .set("Authorization", `Bearer ${token}`)
+        .expect(200);
+      const catalog = await prisma.yarnCatalog.create({
+        data: { createdByUserId: meRes.body.id, brand: "Drops", lineName: "Karisma", weightCategory: "DK", sourceType: "USER" },
+      });
+
+      const patternRes = await request(app.getHttpServer())
+        .post("/api/patterns")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          name: "테스트 도안",
+          designer: "작가",
+          craftType: "KNITTING",
+          weightCategory: "DK",
+          requiredMinM: 300,
+          requiredMaxM: 500,
+          requiredUnit: "METRIC",
+          sourceType: "USER",
+          originalYarnCatalogId: catalog.id,
+          originalYarnBrand: "Drops",
+          originalYarnLine: "Karisma",
+        })
+        .expect(201);
+
+      const updateRes = await request(app.getHttpServer())
+        .patch(`/api/patterns/${patternRes.body.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ originalYarnCatalogId: null, originalYarnBrand: null, originalYarnLine: null, requiredMaxM: null })
+        .expect(200);
+
+      expect(updateRes.body).toMatchObject({
+        name: "테스트 도안",
+        designer: "작가",
+        requiredMinM: 300,
+        requiredMaxM: null,
+        originalYarnCatalogId: null,
+        originalYarnBrand: null,
+        originalYarnLine: null,
+      });
+    });
+
+    it("비울 수 없는 필드에 null을 보내면 400", async () => {
+      const token = await createLoggedInUser();
+      const patternRes = await request(app.getHttpServer())
+        .post("/api/patterns")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          name: "테스트 도안",
+          craftType: "KNITTING",
+          weightCategory: "DK",
+          requiredMinM: 300,
+          requiredUnit: "METRIC",
+          sourceType: "USER",
+        })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .patch(`/api/patterns/${patternRes.body.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ name: null, requiredMinM: null })
+        .expect(400);
+    });
+  });
+
   // 4. 프로젝트 ↔ 재고 연동: 프로젝트가 실을 잡으면 가용량이 줄고, 완료하면 실사용량으로 확정되며,
   //    프로젝트를 지우면 그대로 복구된다. 배치(YarnBatch)는 이 과정에서 한 번도 변하지 않아야 한다
   describe("프로젝트 실 사용량 ↔ 재고 차감", () => {
