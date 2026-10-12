@@ -278,7 +278,11 @@ export interface CreateYarnInput {
   batches: BatchInput[];
 }
 
-export type UpdateYarnInput = Partial<Omit<CreateYarnInput, "catalogId" | "batches">> & {
+// 보내지 않은 필드는 그대로 두고, 선택 항목에 null을 보내면 값을 비운다
+type ClearableYarnField = "lineName" | "colorName" | "fiber" | "weightCategory" | "needleSize" | "gaugeStitches" | "memo";
+export type UpdateYarnInput = Partial<Omit<CreateYarnInput, "catalogId" | "batches" | ClearableYarnField>> & {
+  [K in ClearableYarnField]?: CreateYarnInput[K] | null;
+} & {
   consumed?: boolean;
 };
 

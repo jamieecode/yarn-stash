@@ -71,6 +71,19 @@ describe("YarnService", () => {
         expect.objectContaining({ where: { id: "yarn-1" }, data: expect.objectContaining({ consumed: true }) }),
       );
     });
+
+    it("clears optional fields sent as null and leaves omitted fields untouched", async () => {
+      prisma.yarn.findFirst.mockResolvedValue({ id: "yarn-1", userId: "user-1" });
+      prisma.yarn.update.mockResolvedValue({ id: "yarn-1" });
+
+      await service.update("user-1", "yarn-1", { lineName: null, weightCategory: null, gaugeStitches: null, memo: null });
+
+      const { data } = prisma.yarn.update.mock.calls[0][0];
+      expect(data).toMatchObject({ lineName: null, weightCategory: null, gaugeStitches: null, memo: null });
+      expect(data.brand).toBeUndefined();
+      expect(data.colorName).toBeUndefined();
+      expect(data.photos).toBeUndefined();
+    });
   });
 
   describe("remove", () => {

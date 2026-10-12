@@ -93,6 +93,7 @@ export class YarnService {
 
   // 화면설계서 3-1(실 수정) - 마스터 정보 + consumed 토글 + 사진 목록.
   // 사진은 프론트가 최종적으로 남기고 싶은 목록 전체를 보내는 방식(교체)으로 처리 - 개별 삭제는 그 목록에서 빠진 걸로 표현됨
+  // undefined는 Prisma가 "변경 없음"으로, null은 "비우기"로 처리하므로 DTO 값을 그대로 넘긴다
   async update(userId: string, yarnId: string, dto: UpdateYarnDto) {
     await this.assertOwnership(userId, yarnId);
     return this.prisma.yarn.update({

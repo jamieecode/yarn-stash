@@ -50,17 +50,18 @@ export function YarnEditPage() {
   }
 
   // 실패 사유는 전역 오류 토스트로 알린다 (lib/queryClient.ts) - 성공했을 때만 상세로 이동
+  // 비운 선택 항목은 null로 보내야 지워진다 (undefined는 백엔드에서 "변경 없음")
   function handleSubmit() {
     updateYarn.mutate(
       {
         brand,
-        lineName: lineName || undefined,
-        colorName: colorName || undefined,
-        fiber: fiber || undefined,
-        weightCategory: weightCategory || undefined,
-        needleSize: needleSize || undefined,
-        gaugeStitches: gaugeStitches ? Number(gaugeStitches) : undefined,
-        memo: memo || undefined,
+        lineName: lineName || null,
+        colorName: colorName || null,
+        fiber: fiber || null,
+        weightCategory: weightCategory || null,
+        needleSize: needleSize || null,
+        gaugeStitches: gaugeStitches ? Number(gaugeStitches) : null,
+        memo: memo || null,
         photos,
       },
       { onSuccess: () => navigate(`/yarns/${id}`, { replace: true }) },

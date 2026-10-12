@@ -332,6 +332,56 @@ describe("App e2e", () => {
     });
   });
 
+  describe("실 수정", () => {
+    async function createGuestWithYarn() {
+      const guestRes = await request(app.getHttpServer()).post("/api/auth/guest").expect(201);
+      const token = guestRes.body.accessToken as string;
+      const yarnRes = await request(app.getHttpServer())
+        .post("/api/yarns")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          brand: "Drops",
+          lineName: "Karisma",
+          colorName: "Off White",
+          weightCategory: "DK",
+          gaugeStitches: 22,
+          memo: "메모",
+          batches: [{ skeinCount: 2, weightPerSkeinG: 50, lengthPerSkeinM: 100, inputUnit: "METRIC" }],
+        })
+        .expect(201);
+      return { token, yarnId: yarnRes.body.id as string };
+    }
+
+    it("선택 항목을 null로 보내면 비워지고, 보내지 않은 필드는 그대로다", async () => {
+      const { token, yarnId } = await createGuestWithYarn();
+
+      const updateRes = await request(app.getHttpServer())
+        .patch(`/api/yarns/${yarnId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ lineName: null, weightCategory: null, gaugeStitches: null, memo: null })
+        .expect(200);
+
+      expect(updateRes.body).toMatchObject({
+        brand: "Drops",
+        colorName: "Off White",
+        lineName: null,
+        weightCategory: null,
+        gaugeStitches: null,
+        memo: null,
+      });
+    });
+
+    it("비울 수 없는 필드에 null을 보내면 400", async () => {
+      const { token, yarnId } = await createGuestWithYarn();
+
+      await request(app.getHttpServer())
+        .patch(`/api/yarns/${yarnId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ brand: null })
+        .expect(400);
+    });
+  });
+
   // 4. 프로젝트 ↔ 재고 연동: 프로젝트가 실을 잡으면 가용량이 줄고, 완료하면 실사용량으로 확정되며,
   //    프로젝트를 지우면 그대로 복구된다. 배치(YarnBatch)는 이 과정에서 한 번도 변하지 않아야 한다
   describe("프로젝트 실 사용량 ↔ 재고 차감", () => {
