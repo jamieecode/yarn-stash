@@ -91,7 +91,12 @@ export function PatternDetailPage() {
         title={pattern.name}
         right={
           <div className="flex gap-1">
-            <button onClick={handleToggleBookmark} aria-label={t("pattern:detail.bookmarkAria")} className="cursor-pointer border-none bg-transparent p-1 text-accent">
+            <button
+              onClick={handleToggleBookmark}
+              aria-label={t("pattern:detail.bookmarkAria")}
+              aria-pressed={isBookmarked}
+              className="cursor-pointer border-none bg-transparent p-1 text-accent"
+            >
               <Heart size={18} fill={isBookmarked ? "currentColor" : "none"} />
             </button>
             {isOwner && (
@@ -151,7 +156,7 @@ export function PatternDetailPage() {
             <textarea
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
-              onBlur={() => memo !== pattern.myBookmark?.memo && updateMemo.mutate(memo)}
+              onBlur={() => memo !== (pattern.myBookmark?.memo ?? "") && updateMemo.mutate(memo)}
               rows={2}
               placeholder={t("pattern:detail.memoPlaceholder")}
               className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm outline-none focus:border-accent"
