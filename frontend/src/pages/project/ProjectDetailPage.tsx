@@ -108,12 +108,14 @@ export function ProjectDetailPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => handleRowChange(-1)}
+              aria-label={t("project:detail.rowDecreaseAria")}
               className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-text"
             >
               <Minus size={18} />
             </button>
             <button
               onClick={() => handleRowChange(1)}
+              aria-label={t("project:detail.rowIncreaseAria")}
               className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-none bg-accent text-white"
             >
               <Plus size={18} />

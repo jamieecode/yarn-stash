@@ -12,6 +12,8 @@
     "title": "Project detail",
     "deleteAria": "Delete",
     "completedNote": "Congrats on finishing! The amount used has been reflected in your stash",
+    "rowDecreaseAria": "Decrease row count",
+    "rowIncreaseAria": "Increase row count",
     "reset": "Reset",
     "photoLabel": "Progress photos",
     "memoLabel": "Notes",

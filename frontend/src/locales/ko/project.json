@@ -12,6 +12,8 @@
     "title": "프로젝트 상세",
     "deleteAria": "삭제",
     "completedNote": "완료를 축하해요! 사용한 만큼 재고에 반영됐어요",
+    "rowDecreaseAria": "단수 줄이기",
+    "rowIncreaseAria": "단수 늘리기",
     "reset": "초기화",
     "photoLabel": "진행 사진",
     "memoLabel": "메모",
