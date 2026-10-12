@@ -1,11 +1,14 @@
 import "@testing-library/jest-dom/vitest";
 import { afterEach } from "vitest";
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import i18n from "../lib/i18n";
 import { dismissErrorToast, getErrorToast } from "../lib/errorToast";
 
 // jsdom의 navigator.language(en-US)를 따라가지 않도록 기본 언어로 고정 - 기대 문구는 i18n.t로 만들어 번역이 바뀌어도 깨지지 않게 한다
 await i18n.changeLanguage("ko");
+
+// findBy*/waitFor 대기 시간 - 기본 1초는 부하가 몰릴 때 화면이 늦게 그려지면 모자라다 (testTimeout은 vite.config.ts)
+configure({ asyncUtilTimeout: 3000 });
 
 afterEach(() => {
   cleanup();
