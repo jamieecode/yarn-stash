@@ -1,15 +1,16 @@
 import { vi } from "vitest";
 
-type Handler = (body: unknown) => { status: number; body?: unknown };
+// url은 쿼리스트링(커서·필터)에 따라 응답을 나눠야 할 때 쓴다
+type Handler = (body: unknown, url: URL) => { status: number; body?: unknown };
 
 // "METHOD /path" → 응답. API 주소 접두사와 쿼리스트링은 떼고 비교한다 - 화면 테스트에서 백엔드 응답을 흉내 내는 용도
 export function mockApi(routes: Record<string, Handler>) {
   const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const { pathname } = new URL(String(input));
-    const key = `${init?.method ?? "GET"} ${pathname.replace(/^\/api/, "")}`;
+    const url = new URL(String(input));
+    const key = `${init?.method ?? "GET"} ${url.pathname.replace(/^\/api/, "")}`;
     const handler = routes[key];
     if (!handler) throw new Error(`mockApi: 처리하지 않은 요청 ${key}`);
-    const res = handler(init?.body ? JSON.parse(String(init.body)) : undefined);
+    const res = handler(init?.body ? JSON.parse(String(init.body)) : undefined, url);
     return new Response(res.body === undefined ? null : JSON.stringify(res.body), { status: res.status });
   });
   vi.stubGlobal("fetch", fetch);
