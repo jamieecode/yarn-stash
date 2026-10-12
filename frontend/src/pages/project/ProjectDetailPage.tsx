@@ -7,7 +7,7 @@ import { PhotoUploader } from "../../components/ui/PhotoUploader";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { ProjectYarnList } from "../../components/project/ProjectYarnList";
 import { CompleteProjectModal } from "../../components/project/CompleteProjectModal";
-import { useDeleteProjectMutation, useProjectQuery, useUpdateProjectMutation } from "../../api/useProjects";
+import { useDeleteProjectMutation, useProjectQuery, useProjectRowCounter, useUpdateProjectMutation } from "../../api/useProjects";
 import { PROJECT_STATUS_ORDER, type PhotoInput, type ProjectStatus } from "../../types/api";
 import { projectStatusLabel } from "../../lib/enumLabels";
 
@@ -19,6 +19,7 @@ export function ProjectDetailPage() {
   const { data: project } = useProjectQuery(id);
   const updateProject = useUpdateProjectMutation(id ?? "");
   const deleteProject = useDeleteProjectMutation();
+  const setRow = useProjectRowCounter(id ?? "");
 
   const [memo, setMemo] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -55,7 +56,7 @@ export function ProjectDetailPage() {
   }
 
   function handleRowChange(delta: number) {
-    updateProject.mutate({ currentRow: Math.max(0, project!.currentRow + delta) });
+    setRow(Math.max(0, project!.currentRow + delta));
   }
 
   function handleReset() {

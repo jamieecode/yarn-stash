@@ -145,6 +145,58 @@ describe("ProjectDetailPage 단수 카운터", () => {
     await waitFor(() => expect(api.bodiesOf("PATCH /projects/proj-1")).toEqual([{ currentRow: 0 }]));
   });
 
+  it("연달아 눌러도 누른 만큼 올라가고, 저장은 순서대로 보내며 다 끝난 뒤 한 번만 다시 불러온다", async () => {
+    // 저장한 단수를 기억하는 서버 - PATCH 응답은 테스트가 풀어줄 때까지 붙잡아 둔다
+    let serverRow = 5;
+    const pending: (() => void)[] = [];
+    const api = mockApi({
+      "GET /projects/proj-1": () => ({ status: 200, body: project({ currentRow: serverRow }) }),
+      "PATCH /projects/proj-1": (body) =>
+        new Promise((resolve) =>
+          pending.push(() => {
+            serverRow = (body as { currentRow: number }).currentRow;
+            resolve({ status: 200, body: project({ currentRow: serverRow }) });
+          }),
+        ),
+    });
+    const getCount = () => api.fetch.mock.calls.filter(([input, init]) => !init?.method && String(input).endsWith("/projects/proj-1")).length;
+    renderPage();
+    const plus = await screen.findByRole("button", { name: t("project:detail.rowIncreaseAria") });
+
+    await userEvent.click(plus);
+    await userEvent.click(plus);
+
+    // 첫 저장이 끝나기 전에도 화면은 바로 7이고, 두 번째 요청은 첫 요청이 끝날 때까지 기다린다
+    expect(screen.getByText("7")).toBeInTheDocument();
+    await waitFor(() => expect(api.bodiesOf("PATCH /projects/proj-1")).toEqual([{ currentRow: 6 }]));
+
+    pending.shift()!();
+    await waitFor(() => expect(api.bodiesOf("PATCH /projects/proj-1")).toEqual([{ currentRow: 6 }, { currentRow: 7 }]));
+    // 아직 저장 중인 요청이 있으니 다시 불러오지 않는다 (불러오면 서버의 6이 화면을 덮어쓴다)
+    expect(getCount()).toBe(1);
+    expect(screen.getByText("7")).toBeInTheDocument();
+
+    pending.shift()!();
+    await waitFor(() => expect(getCount()).toBe(2));
+    expect(await screen.findByText("7")).toBeInTheDocument();
+  });
+
+  it("저장에 실패하면 서버 값으로 되돌리고 사유를 토스트로 보여준다", async () => {
+    let fail = () => {};
+    mockProject(project(), {
+      "PATCH /projects/proj-1": () => new Promise((resolve) => (fail = () => resolve({ status: 500, body: { message: "잠시 후 다시 시도해주세요" } }))),
+    });
+    renderPage();
+
+    await userEvent.click(await screen.findByRole("button", { name: t("project:detail.rowIncreaseAria") }));
+    expect(screen.getByText("6")).toBeInTheDocument();
+    fail();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("잠시 후 다시 시도해주세요");
+    expect(await screen.findByText("5")).toBeInTheDocument();
+    expect(screen.queryByText("6")).not.toBeInTheDocument();
+  });
+
   it("초기화는 확인을 받은 뒤 0단으로 저장하고 모달을 닫는다", async () => {
     const api = mockProject(project());
     renderPage();
