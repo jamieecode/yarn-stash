@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import { setLanguage } from "../lib/i18n";
+import { showErrorToast } from "../lib/errorToast";
+import { apiErrorMessage } from "../lib/queryClient";
 
 // 화면설계서 8번(마이 탭)
 export function MyPage() {
@@ -30,6 +32,9 @@ export function MyPage() {
     try {
       await updateNickname(trimmed);
       setIsEditing(false);
+    } catch (err) {
+      // 입력한 값은 그대로 두고 사유만 알린다 - 고쳐서 다시 저장할 수 있게
+      showErrorToast(apiErrorMessage(err));
     } finally {
       setIsSaving(false);
     }
