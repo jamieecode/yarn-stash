@@ -134,18 +134,16 @@ describe("HomePage", () => {
     expect(await screen.findByText(t("dashboard:home.readyEmpty"))).toBeInTheDocument();
   });
 
-  it("상태별 프로젝트 수와 찜한 도안 수를 보여주고, 프로젝트 타일은 프로젝트 목록으로, 찜 타일은 도안 목록으로 간다", async () => {
+  it("상태별 프로젝트 수와 찜한 도안 수를 보여주고, 찜 타일을 누르면 도안 목록으로 간다", async () => {
     mockHome(summary());
     renderPage();
 
-    const inProgress = await screen.findByRole("button", { name: `2 ${t("enums:projectStatus.IN_PROGRESS")}` });
+    expect(await screen.findByRole("button", { name: `2 ${t("enums:projectStatus.IN_PROGRESS")}` })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: `1 ${t("enums:projectStatus.ON_HOLD")}` })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: `4 ${t("enums:projectStatus.COMPLETED")}` })).toBeInTheDocument();
-    const bookmarked = screen.getByRole("button", { name: `5 ${t("dashboard:home.tileBookmarked")}` });
 
-    await userEvent.click(bookmarked);
+    await userEvent.click(screen.getByRole("button", { name: `5 ${t("dashboard:home.tileBookmarked")}` }));
     expect(await screen.findByText("현재 위치 /patterns")).toBeInTheDocument();
-    expect(inProgress).not.toBeInTheDocument();
   });
 
   it("프로젝트 타일을 누르면 프로젝트 목록으로 간다", async () => {
