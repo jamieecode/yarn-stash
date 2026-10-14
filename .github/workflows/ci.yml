@@ -39,6 +39,7 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npx tsc --noEmit
+      - run: npm run lint
       - run: npm test
       - run: npx prisma migrate deploy
       - run: npm run test:e2e:ci

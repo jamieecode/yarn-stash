@@ -37,6 +37,7 @@ src/
 ```bash
 npm test        # run all unit tests
 npm run test:cov # with coverage
+npm run lint    # oxlint (warnings fail too)
 ```
 
 Unit tests focus on core business logic: matching ratio/gauge/dye-lot-mixing calculations, unit conversion, ownership validation, guest-to-account merge, pattern-deletion eligibility conditions, and so on. `PrismaService` is replaced with a mock, so tests run without a real database.

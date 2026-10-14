@@ -38,6 +38,7 @@ src/
 ```bash
 npm test        # unit 테스트 전체 실행
 npm run test:cov # 커버리지 포함
+npm run lint    # oxlint (경고도 실패로 처리)
 ```
 
 핵심 비즈니스 로직(매칭 비율·게이지·로트 혼합 계산, 단위 변환, 소유권 검증, 게스트→계정 병합, 도안 삭제 가능 조건 등) 위주로 서비스 unit 테스트를 작성했다. `PrismaService`는 목(mock)으로 대체하므로 실제 DB 없이 실행된다.

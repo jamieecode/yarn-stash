@@ -40,7 +40,7 @@
 - [x] 프론트엔드 빌드 확인 — CI(`ci.yml` frontend 잡)에서 `npm run build`(`tsc -b && vite build`)로 매 푸시마다 실행
 - [x] 프론트엔드 lint — CI에서 `npm run lint`(oxlint) 실행
 - [x] 번역 키 일치 검사 — ✅ 완료 (2026-10-02). CI frontend 잡에 `npm run check-i18n` 추가 (스크립트가 `--experimental-strip-types`를 써서 frontend 잡만 Node 22로 올림)
-- [ ] 백엔드 lint — lint 스크립트 자체가 없음, 필요하면 eslint 설정 추가 고려
+- [x] 백엔드 lint — ✅ 완료 (2026-10-14). 프론트와 같은 oxlint로 `npm run lint` 추가(`backend/.oxlintrc.json`, typescript·oxc·jest 플러그인, 기본 correctness 규칙), CI backend 잡에서 타입 체크 다음에 실행. 현재 경고 0개라 `--deny-warnings`로 경고도 실패 처리. suspicious 규칙은 NestJS 빈 `@Module` 클래스·Prisma `_count`만 걸려서 켜지 않음
 - [x] e2e 테스트 추가 — ✅ 완료 (2026-08-04). 로컬 Docker Postgres(`backend/docker-compose.test.yml`, `localhost:5433`, 개발용 Neon DB와 분리)를 대상으로 `backend/test/app.e2e-spec.ts` 작성, `npm run test:e2e`로 실행. 아래 3개 플로우 컨트롤러→가드→Prisma 전체 경로로 검증, 4개 테스트 전부 통과
   - 게스트 생성 → 로그인 → 실 등록 → 도안 매칭 조회
   - 게스트 → 소셜 계정 병합(카카오, `mergeGuestInto`) — `global.fetch`를 스텁으로 대체해 실제 카카오 서버 호출 없이 검증
