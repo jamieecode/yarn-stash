@@ -78,7 +78,7 @@
 
 - [x] 루트 README(한/영)에 스크린샷 추가 — `docs/screenshots/`의 홈/실 목록/도안 목록/프로젝트 상세 4장
 - [x] 라이브 데모 링크를 루트 README 상단에 추가
-- [ ] GitHub 저장소 설정에서 Description/Topics 채우기 (public 전환 직후라 아직 비어있을 가능성)
+- [x] GitHub 저장소 설정에서 Description/Topics 채우기 — ✅ 완료 (2026-10-15). 영문 Description, Website(라이브 데모), Topics 17개(knitting·crochet·ravelry·react·nestjs·prisma 등) 입력
 
 ## 5. 2단계 기능 (보류, 지금 당장 필요 없음)
 
